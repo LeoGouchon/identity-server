@@ -1,1 +1,0 @@
-ALTER TABLE matches RENAME TO squash_matches;
