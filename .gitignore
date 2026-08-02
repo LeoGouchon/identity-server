@@ -12,6 +12,10 @@ applications.properties
 
 !/src/main/resources/application.properties
 
+# Local/external runtime configuration
+/config/*.yml
+!/config/*.example.yml
+
 ### STS ###
 .apt_generated
 .classpath

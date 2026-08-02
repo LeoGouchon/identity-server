@@ -1,5 +1,6 @@
 package com.leogouchon.identityserver.oauth2;
 
+import com.leogouchon.identityserver.config.IdentityProperties;
 import com.leogouchon.identityserver.security.TokenService;
 import com.leogouchon.identityserver.token.RefreshTokenSession;
 import com.leogouchon.identityserver.token.RefreshTokenSessionRepository;
@@ -35,15 +36,13 @@ public class OAuth2Service {
     public OAuth2Service(TokenService tokens, IdentityUserRepository users, RefreshTokenSessionRepository refreshTokens,
                          @Value("${identity.issuer}") String issuer,
                          @Value("${identity.refresh-token-ttl-days}") long refreshTtlDays,
-                         @Value("${identity.allowed-backends}") String allowedBackends,
-                         @Value("${identity.scopes}") String scopes,
-                         @Value("${identity.oauth-clients}") String clientConfiguration) {
+                         IdentityProperties identityProperties) {
         this.tokens = tokens;
         this.users = users;
         this.refreshTokens = refreshTokens;
         this.issuer = issuer;
         this.refreshTtlDays = refreshTtlDays;
-        this.allowedBackends = Arrays.stream(allowedBackends.split("\\|"))
+        this.allowedBackends = identityProperties.getAllowedBackends().stream()
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
@@ -51,14 +50,14 @@ public class OAuth2Service {
             throw new IllegalArgumentException("At least one identity backend must be configured");
         }
         this.defaultBackend = this.allowedBackends.iterator().next();
-        this.scopes = Arrays.stream(scopes.split("\\s+"))
+        this.scopes = identityProperties.getScopes().stream()
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
                 .toList();
         if (this.scopes.isEmpty()) {
             throw new IllegalArgumentException("At least one identity scope must be configured");
         }
-        this.clients = parseClients(clientConfiguration);
+        this.clients = parseClients(identityProperties.getOauthClients());
         if (this.clients.isEmpty()) {
             throw new IllegalArgumentException("At least one identity OAuth client must be configured");
         }
@@ -185,19 +184,18 @@ public class OAuth2Service {
                 "refresh_token", raw, "token_type", "Bearer", "expires_in", tokens.accessTtl(), "scope", scope);
     }
 
-    private static Map<String, Set<String>> parseClients(String configuration) {
+    private static Map<String, Set<String>> parseClients(List<IdentityProperties.OAuthClient> configuration) {
         Map<String, Set<String>> parsed = new LinkedHashMap<>();
-        for (String entry : configuration.split(";")) {
-            String[] client = entry.trim().split("=", 2);
-            if (client.length != 2 || client[0].isBlank() || client[1].isBlank()) {
-                throw new IllegalArgumentException("Invalid identity.oauth-clients entry: " + entry);
+        for (IdentityProperties.OAuthClient client : configuration) {
+            if (client.getClientId() == null || client.getClientId().isBlank()) {
+                throw new IllegalArgumentException("Every identity OAuth client must have a client-id");
             }
-            Set<String> redirectUris = Arrays.stream(client[1].split("\\|"))
+            Set<String> redirectUris = client.getRedirectUris().stream()
                     .map(String::trim)
                     .filter(uri -> !uri.isBlank())
                     .collect(java.util.stream.Collectors.toUnmodifiableSet());
-            if (redirectUris.isEmpty() || parsed.put(client[0].trim(), redirectUris) != null) {
-                throw new IllegalArgumentException("Invalid or duplicate identity OAuth client: " + client[0]);
+            if (redirectUris.isEmpty() || parsed.put(client.getClientId().trim(), redirectUris) != null) {
+                throw new IllegalArgumentException("Invalid or duplicate identity OAuth client: " + client.getClientId());
             }
         }
         return Collections.unmodifiableMap(parsed);

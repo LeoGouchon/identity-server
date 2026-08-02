@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/identity
+    username: identity
+    password: identity-local
+  flyway:
+    enabled: true
+    locations: classpath:db/migration,classpath:db/dev-data
+    schemas: public

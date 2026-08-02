@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: identity-server
+  datasource:
+    url: jdbc:postgresql://db:5432/identity
+    username: identity
+    password: identity-local
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      keepalive-time: 0
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration,classpath:db/dev-data
+    schemas: public
+
+server:
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: false
+        same-site: LAX
+
+cookie:
+  secure: false
+
+identity:
+  issuer: http://localhost:8081
+  oauth-clients:
+    - client-id: web-client
+      redirect-uris:
+        - http://localhost:4200/auth/callback
+
+    - client-id: admin-web
+      redirect-uris:
+        - http://localhost:5173/auth/callback
+
+  allowed-backends:
+    - default-api
+  scopes:
+    - openid
+    - profile
+    - email
+  access-token-ttl-seconds: 600
+  refresh-token-ttl-days: 30
+  cors:
+    allowed-origins:
+      - http://localhost:4200
+      - http://localhost:5173
+  provisioning-url: http://localhost:8080/api/internal/identity-users
+  provisioning-secret: change-me

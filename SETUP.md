@@ -44,21 +44,57 @@ identity server and the backend; never put it in frontend JavaScript.
 
 ## 2. Configure the identity server
 
-Set these environment variables for the identity-server process:
+### Local Docker setup
+
+For local development, configure the application in one YAML file instead of putting OAuth
+clients in `docker-compose.yml`:
+
+The `make up` command creates `config/application-dev.yml` from the example when needed.
+Review that file and adjust its values before the first start.
+
+Edit `config/application-dev.yml`. It contains the complete local Spring configuration,
+including the datasource, issuer, OAuth clients, redirect URIs, allowed backends, scopes, CORS,
+token lifetimes, and provisioning settings.
+
+Then start the server and its PostgreSQL database from the `identity-server` directory:
+
+```text
+make up
+```
+
+The identity server is exposed at `http://localhost:8081`. Stop the containers with:
+
+```text
+make stop
+```
+
+Use `make clean` only when you also want to remove the local PostgreSQL data.
+Use `make logs` to follow backend logs, `make ps` to inspect containers, and `make test` to run
+the Maven test suite in the test container.
+The local configuration file is ignored by Git and mounted read-only into the backend container.
+
+The PostgreSQL container settings remain in `docker-compose.yml`, because Docker Compose cannot
+consume a Spring `application.yml` file to initialize PostgreSQL. Keep its database name, user,
+and password synchronized with `spring.datasource` in `config/application-dev.yml`.
+
+### Environment/deployment configuration
+
+For deployments that do not mount an external YAML file, the equivalent settings can be passed
+as indexed Spring environment variables:
 
 ```dotenv
 # Public URL that is written into token issuer claims.
 IDENTITY_ISSUER=https://login.acme.test
 
 # Exact browser origins allowed to call the identity server.
-# Separate multiple origins with |.
-IDENTITY_CORS_ALLOWED_ORIGINS=https://recipes.acme.test
+IDENTITY_CORS_ALLOWED_ORIGINS_0=https://recipes.acme.test
 
-# client-id=redirect-uri. Separate clients with ; and callback URLs with |.
-IDENTITY_OAUTH_CLIENTS=acme-recipes-web=https://recipes.acme.test/auth/callback
+# OAuth clients and redirect URIs are indexed lists.
+IDENTITY_OAUTH_CLIENTS_0_CLIENT_ID=acme-recipes-web
+IDENTITY_OAUTH_CLIENTS_0_REDIRECT_URIS_0=https://recipes.acme.test/auth/callback
 
 # The audience/resource values that the identity server is allowed to issue.
-IDENTITY_ALLOWED_BACKENDS=acme-recipes-api
+IDENTITY_ALLOWED_BACKENDS_0=acme-recipes-api
 
 # URL called after a user signs up, so the backend can create its local user record.
 IDENTITY_PROVISIONING_URL=http://backend:8080/api/internal/identity-users
@@ -69,7 +105,7 @@ IDENTITY_COOKIE_SECURE=true
 IDENTITY_COOKIE_SAME_SITE=LAX
 ```
 
-The value of `IDENTITY_OAUTH_CLIENTS` is an exact allow-list. For example, this callback is
+The configured `identity.oauth-clients` list is an exact allow-list. For example, this callback is
 different and will be rejected:
 
 ```text
@@ -81,8 +117,9 @@ The trailing slash does not match the registered callback without a trailing sla
 For a local website running at `http://localhost:4200`, register a local callback explicitly:
 
 ```dotenv
-IDENTITY_CORS_ALLOWED_ORIGINS=http://localhost:4200
-IDENTITY_OAUTH_CLIENTS=acme-recipes-web=http://localhost:4200/auth/callback
+IDENTITY_CORS_ALLOWED_ORIGINS_0=http://localhost:4200
+IDENTITY_OAUTH_CLIENTS_0_CLIENT_ID=acme-recipes-web
+IDENTITY_OAUTH_CLIENTS_0_REDIRECT_URIS_0=http://localhost:4200/auth/callback
 ```
 
 Start the identity server and check that its discovery document is available:
@@ -218,9 +255,10 @@ For a local browser website at `http://localhost:4200`, use values like:
 ```dotenv
 # identity-server/.env or Compose environment
 IDENTITY_ISSUER=http://localhost:8081
-IDENTITY_CORS_ALLOWED_ORIGINS=http://localhost:4200
-IDENTITY_OAUTH_CLIENTS=acme-recipes-web=http://localhost:4200/auth/callback
-IDENTITY_ALLOWED_BACKENDS=acme-recipes-api
+IDENTITY_CORS_ALLOWED_ORIGINS_0=http://localhost:4200
+IDENTITY_OAUTH_CLIENTS_0_CLIENT_ID=acme-recipes-web
+IDENTITY_OAUTH_CLIENTS_0_REDIRECT_URIS_0=http://localhost:4200/auth/callback
+IDENTITY_ALLOWED_BACKENDS_0=acme-recipes-api
 IDENTITY_PROVISIONING_SECRET=replace-this-in-local-development
 
 # When the identity server runs in Docker and the backend is exposed on the host:
