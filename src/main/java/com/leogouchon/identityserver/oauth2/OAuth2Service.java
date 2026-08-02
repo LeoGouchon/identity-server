@@ -28,6 +28,7 @@ public class OAuth2Service {
     private final String issuer;
     private final long refreshTtlDays;
     private final Set<String> allowedBackends;
+    private final List<String> scopes;
     private final String defaultBackend;
     private final Map<String, Set<String>> clients;
 
@@ -35,6 +36,7 @@ public class OAuth2Service {
                          @Value("${identity.issuer}") String issuer,
                          @Value("${identity.refresh-token-ttl-days}") long refreshTtlDays,
                          @Value("${identity.allowed-backends}") String allowedBackends,
+                         @Value("${identity.scopes}") String scopes,
                          @Value("${identity.oauth-clients}") String clientConfiguration) {
         this.tokens = tokens;
         this.users = users;
@@ -49,6 +51,13 @@ public class OAuth2Service {
             throw new IllegalArgumentException("At least one identity backend must be configured");
         }
         this.defaultBackend = this.allowedBackends.iterator().next();
+        this.scopes = Arrays.stream(scopes.split("\\s+"))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .toList();
+        if (this.scopes.isEmpty()) {
+            throw new IllegalArgumentException("At least one identity scope must be configured");
+        }
         this.clients = parseClients(clientConfiguration);
         if (this.clients.isEmpty()) {
             throw new IllegalArgumentException("At least one identity OAuth client must be configured");
@@ -66,7 +75,7 @@ public class OAuth2Service {
         result.put("response_types_supported", List.of("code"));
         result.put("subject_types_supported", List.of("public"));
         result.put("id_token_signing_alg_values_supported", List.of("RS256"));
-        result.put("scopes_supported", List.of("openid", "profile", "email", "hubscore.read"));
+        result.put("scopes_supported", scopes);
         result.put("grant_types_supported", List.of("authorization_code", "refresh_token"));
         result.put("code_challenge_methods_supported", List.of("S256"));
         result.put("resource_indicators_supported", true);

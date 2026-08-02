@@ -32,8 +32,8 @@ public class RegistrationService {
 
     public RegistrationService(IdentityUserRepository users, InvitationTokenRepository invitations,
                                PasswordEncoder passwordEncoder, RestClient.Builder restClient,
-                               @Value("${identity.hubscore-provisioning-url}") String provisioningUrl,
-                               @Value("${identity.hubscore-provisioning-secret}") String provisioningSecret) {
+                               @Value("${identity.provisioning-url}") String provisioningUrl,
+                               @Value("${identity.provisioning-secret}") String provisioningSecret) {
         this.users = users;
         this.invitations = invitations;
         this.passwordEncoder = passwordEncoder;
@@ -56,7 +56,7 @@ public class RegistrationService {
         users.save(user);
         invitation.setUsedAt(LocalDateTime.now(ZoneOffset.UTC));
         invitations.save(invitation);
-        provisionHubscoreUser(user, invitation);
+        provisionUser(user, invitation);
         return new SignupResponse(user.getId(), user.getEmail());
     }
 
@@ -73,7 +73,7 @@ public class RegistrationService {
         return new InvitationResponse(invitation.getToken());
     }
 
-    private void provisionHubscoreUser(IdentityUser user, InvitationToken invitation) {
+    private void provisionUser(IdentityUser user, InvitationToken invitation) {
         Map<String, Object> request = new HashMap<>();
         request.put("identityUserId", user.getId());
         request.put("email", user.getEmail());
