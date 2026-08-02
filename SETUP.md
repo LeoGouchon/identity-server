@@ -143,7 +143,7 @@ code_challenge_method:  S256
 ```
 
 When the user clicks **Log in**, the website generates a random `state`, `nonce`, and PKCE
-`code_verifier`, then redirects to:
+`codeVerifier`, then redirects to:
 
 ```text
 https://login.acme.test/oauth2/authorize?
@@ -239,7 +239,7 @@ from inside each container before testing login.
 
 ## Troubleshooting checklist
 
-- `redirect_uri` is an exact match, including scheme, port, path, and trailing slash.
+- `redirectUri` is an exact match, including scheme, port, path, and trailing slash.
 - `resource` is present and appears in `IDENTITY_ALLOWED_BACKENDS`.
 - The backend's issuer is identical to the JWT `iss` claim.
 - The backend can reach `/oauth2/jwks`.

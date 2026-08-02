@@ -31,23 +31,23 @@ public class TokenController {
     }
 
     @GetMapping("/oauth2/authorize")
-    public void authorize(@RequestParam String response_type, @RequestParam String client_id,
-                          @RequestParam String redirect_uri, @RequestParam(defaultValue = "openid") String scope,
+    public void authorize(@RequestParam String responseType, @RequestParam String clientId,
+                          @RequestParam String redirectUri, @RequestParam(defaultValue = "openid") String scope,
                           @RequestParam String state, @RequestParam String nonce,
-                          @RequestParam String code_challenge, @RequestParam(defaultValue = "S256") String code_challenge_method,
+                          @RequestParam String codeChallenge, @RequestParam(defaultValue = "S256") String codeChallengeMethod,
                           @RequestParam(required = false) String resource, Authentication authentication,
                           jakarta.servlet.http.HttpServletResponse response) throws IOException {
-        response.sendRedirect(oauth2.authorize(response_type, client_id, redirect_uri, scope, state, nonce,
-                code_challenge, code_challenge_method, resource, authentication));
+        response.sendRedirect(oauth2.authorize(responseType, clientId, redirectUri, scope, state, nonce,
+                codeChallenge, codeChallengeMethod, resource, authentication));
     }
 
     @PostMapping(value = "/oauth2/token", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public Map<String, Object> token(@RequestParam String grant_type, @RequestParam String client_id,
+    public Map<String, Object> token(@RequestParam String grantType, @RequestParam String clientId,
                                      @RequestParam(required = false) String code,
-                                     @RequestParam(required = false) String redirect_uri,
-                                     @RequestParam(required = false) String code_verifier,
-                                     @RequestParam(required = false) String refresh_token) {
-        return oauth2.token(grant_type, client_id, code, redirect_uri, code_verifier, refresh_token);
+                                     @RequestParam(required = false) String redirectUri,
+                                     @RequestParam(required = false) String codeVerifier,
+                                     @RequestParam(required = false) String refreshToken) {
+        return oauth2.token(grantType, clientId, code, redirectUri, codeVerifier, refreshToken);
     }
 
     @GetMapping("/userinfo")
@@ -56,9 +56,9 @@ public class TokenController {
     }
 
     @GetMapping("/connect/logout")
-    public void logout(@RequestParam(required = false) String post_logout_redirect_uri,
+    public void logout(@RequestParam(required = false) String postLogoutRedirectUri,
                        jakarta.servlet.http.HttpServletResponse response) throws IOException {
-        response.sendRedirect(oauth2.logout(post_logout_redirect_uri));
+        response.sendRedirect(oauth2.logout(postLogoutRedirectUri));
     }
 
     @PostMapping("/oauth2/revoke")

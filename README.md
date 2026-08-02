@@ -47,7 +47,7 @@ The default local issuer is `http://localhost:8081` (`IDENTITY_ISSUER`).
 
 ### 2. Authorization-code login with PKCE
 
-The client creates a random `state`, `nonce`, and PKCE `code_verifier`, then derives the S256 `code_challenge`. It redirects the browser to `/oauth2/authorize` with:
+The client creates a random `state`, `nonce`, and PKCE `codeVerifier`, then derives the S256 `code_challenge`. It redirects the browser to `/oauth2/authorize` with:
 
 ```text
 response_type=code
@@ -89,7 +89,7 @@ All frontends must use the same identity-server issuer, for example `https://ide
 
 1. Frontend A redirects the browser to the identity server and the user signs in.
 2. The identity server stores the authenticated session in its HTTP-only session cookie.
-3. Frontend B redirects the browser to the same `/oauth2/authorize` endpoint with its own `client_id`, callback URL, `state`, `nonce`, and PKCE challenge.
+3. Frontend B redirects the browser to the same `/oauth2/authorize` endpoint with its own `clientId`, callback URL, `state`, `nonce`, and PKCE challenge.
 4. Because the browser already has an identity-server session, the identity server skips the login prompt and immediately returns an authorization code to Frontend B.
 5. Frontend B exchanges that code and receives tokens for itself and its selected backend.
 
@@ -101,7 +101,7 @@ Register all frontend clients with `IDENTITY_OAUTH_CLIENTS`. Entries are separat
 IDENTITY_OAUTH_CLIENTS=app-one-web=https://app-one.example.com/auth/callback;app-two-web=https://app-two.example.com/auth/callback;app-three-web=https://app-three.example.com/auth/callback
 ```
 
-Each frontend must use its own `client_id` and an exact registered `redirect_uri`. The authorization code is bound to both values, preventing one frontend from redeeming another frontend's code.
+Each frontend must use its own `clientId` and an exact registered `redirectUri`. The authorization code is bound to both values, preventing one frontend from redeeming another frontend's code.
 
 Configure browser origins allowed to call the identity server with `IDENTITY_CORS_ALLOWED_ORIGINS`. Origins are separated with `|` and must include the scheme and port when applicable:
 
