@@ -6,19 +6,24 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - dbdata:/var/lib/postgresql/data
 
   backend:
     build: .
+    ports:
+      - "8081:8080"
     environment:
       SPRING_PROFILES_ACTIVE: dev
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "8080:8080"
+      IDENTITY_ISSUER: http://localhost:8081
+      IDENTITY_OAUTH_CLIENTS: ${IDENTITY_OAUTH_CLIENTS:hubscore-web=http://localhost:4200/auth/callback|https://app.example.com/auth/callback}
+      IDENTITY_ALLOWED_BACKENDS: ${IDENTITY_ALLOWED_BACKENDS:hubscore-api}
+      HUBSCORE_PROVISIONING_URL: ${HUBSCORE_PROVISIONING_URL:http://localhost:8080/api/internal/identity-users}
+      HUBSCORE_PROVISIONING_SECRET: ${HUBSCORE_PROVISIONING_SECRET:change-me}
     depends_on:
       - db
 

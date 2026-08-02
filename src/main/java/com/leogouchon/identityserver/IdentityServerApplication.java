@@ -22,7 +22,7 @@ public class IdentityServerApplication implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(@NotNull CorsRegistry registry) {
         if ("prod".equalsIgnoreCase(activeProfile)) {
-            registry.addMapping("/api/**")
+            registry.addMapping("/**")
                     .allowedOrigins(
                             "https://squash.leogouchon.com",
                             "https://www.squash.leogouchon.com",
@@ -33,7 +33,7 @@ public class IdentityServerApplication implements WebMvcConfigurer {
                     .allowedHeaders("*")
                     .allowCredentials(true);
         } else {
-            registry.addMapping("/api/**")
+            registry.addMapping("/**")
                     .allowedOrigins("http://localhost:4200", "http://localhost:5173")
                     .allowedMethods("*")
                     .allowedHeaders("*")
