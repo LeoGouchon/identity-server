@@ -41,7 +41,7 @@ public class OAuth2Service {
         this.refreshTokens = refreshTokens;
         this.issuer = issuer;
         this.refreshTtlDays = refreshTtlDays;
-        this.allowedBackends = Arrays.stream(allowedBackends.split(","))
+        this.allowedBackends = Arrays.stream(allowedBackends.split("\\|"))
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());

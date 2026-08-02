@@ -103,6 +103,14 @@ IDENTITY_OAUTH_CLIENTS=app-one-web=https://app-one.example.com/auth/callback;app
 
 Each frontend must use its own `client_id` and an exact registered `redirect_uri`. The authorization code is bound to both values, preventing one frontend from redeeming another frontend's code.
 
+Configure browser origins allowed to call the identity server with `IDENTITY_CORS_ALLOWED_ORIGINS`. Origins are separated with `|` and must include the scheme and port when applicable:
+
+```text
+IDENTITY_CORS_ALLOWED_ORIGINS=http://localhost:4200|http://localhost:5173
+```
+
+There is no default origin in any environment. An empty value denies browser access through CORS until origins are explicitly configured.
+
 ### 3. Tokens
 
 The token response contains:
@@ -146,16 +154,16 @@ The current Hubscore resource-server configuration validates the issuer and JWT 
 
 ### Multiple backends
 
-Configure the allowed backend audiences with a comma-separated list:
+Configure the allowed backend audiences with a `|`-separated list:
 
 ```properties
-identity.allowed-backends=hubscore-api,analytics-api,admin-api
+identity.allowed-backends=hubscore-api|analytics-api|admin-api
 ```
 
 The equivalent environment variable is:
 
 ```text
-IDENTITY_ALLOWED_BACKENDS=hubscore-api,analytics-api,admin-api
+IDENTITY_ALLOWED_BACKENDS=hubscore-api|analytics-api|admin-api
 ```
 
 Clients select a backend with the OAuth `resource` parameter on `/oauth2/authorize`. The authorization code binds that audience, and refresh-token rotation continues issuing tokens for the same audience. If `resource` is omitted, the first configured backend is used, preserving the default Hubscore flow. An unknown resource is rejected with `400 Invalid resource`.

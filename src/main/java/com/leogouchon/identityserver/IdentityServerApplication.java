@@ -1,12 +1,14 @@
 package com.leogouchon.identityserver;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Arrays;
+import java.util.List;
 
 @SpringBootApplication(scanBasePackages = "com.leogouchon.identityserver")
 @EnableScheduling
@@ -16,28 +18,21 @@ public class IdentityServerApplication implements WebMvcConfigurer {
         SpringApplication.run(IdentityServerApplication.class, args);
     }
 
-    @Value("${spring.profiles.active:}")
-    private String activeProfile;
+    private final List<String> corsAllowedOrigins;
+
+    public IdentityServerApplication(@Value("${identity.cors.allowed-origins}") String corsAllowedOrigins) {
+        this.corsAllowedOrigins = Arrays.stream(corsAllowedOrigins.split("\\|"))
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList();
+    }
 
     @Override
-    public void addCorsMappings(@NotNull CorsRegistry registry) {
-        if ("prod".equalsIgnoreCase(activeProfile)) {
-            registry.addMapping("/**")
-                    .allowedOrigins(
-                            "https://squash.leogouchon.com",
-                            "https://www.squash.leogouchon.com",
-                            "https://babyfoot.leogouchon.com",
-                            "https://www.babyfoot.leogouchon.com"
-                    )
-                    .allowedMethods("*")
-                    .allowedHeaders("*")
-                    .allowCredentials(true);
-        } else {
-            registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:4200", "http://localhost:5173")
-                    .allowedMethods("*")
-                    .allowedHeaders("*")
-                    .allowCredentials(true);
-        }
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins(corsAllowedOrigins.toArray(String[]::new))
+                .allowedMethods("*")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }
