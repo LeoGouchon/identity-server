@@ -2,9 +2,9 @@ spring:
   application:
     name: identity-server
   datasource:
-    url: jdbc:postgresql://db:5432/identity
-    username: identity
-    password: identity-local
+    url: jdbc:postgresql://db:5432/${DB_NAME:identity}
+    username: ${DB_USER:identity}
+    password: ${DB_PASSWORD:identity-local}
     hikari:
       minimum-idle: 1
       maximum-pool-size: 5
