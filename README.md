@@ -128,7 +128,8 @@ The discovery document advertises:
 | Logout redirect | `/connect/logout` |
 | Token revocation | `/oauth2/revoke` |
 
-The controller currently expects camel-case parameter names such as `responseType`, `clientId`, `redirectUri`, `codeVerifier`, and `grantType`.
+OAuth request parameters use the standard `snake_case` names such as `response_type`, `client_id`,
+`redirect_uri`, `code_verifier`, and `grant_type`.
 
 ## Authorization-code login with PKCE
 
@@ -136,21 +137,21 @@ The client generates a random `state`, `nonce`, and `codeVerifier`, then derives
 
 ```text
 GET /oauth2/authorize?
-  responseType=code&
-  clientId=default-web&
-  redirectUri=http%3A%2F%2Flocalhost%3A4200%2Fauth%2Fcallback&
+  response_type=code&
+  client_id=default-web&
+  redirect_uri=http%3A%2F%2Flocalhost%3A4200%2Fauth%2Fcallback&
   scope=openid%20profile%20email&
   resource=default-api&
   state=<state>&
   nonce=<nonce>&
-  codeChallenge=<S256 challenge>&
-  codeChallengeMethod=S256
+  code_challenge=<S256 challenge>&
+  code_challenge_method=S256
 ```
 
 The client ID and redirect URI must exactly match the configured `identity.oauth-clients` list. The user signs in through Spring Security. The server then creates a one-time authorization code and redirects to:
 
 ```text
-<redirectUri>?code=<code>&state=<state>
+<redirect_uri>?code=<code>&state=<state>
 ```
 
 The client must verify `state` and exchange the code:
@@ -159,7 +160,7 @@ The client must verify `state` and exchange the code:
 POST /oauth2/token
 Content-Type: application/x-www-form-urlencoded
 
-grantType=authorization_code&clientId=default-web&code=<code>&redirectUri=<same-uri>&codeVerifier=<verifier>
+grant_type=authorization_code&client_id=default-web&code=<code>&redirect_uri=<same-uri>&code_verifier=<verifier>
 ```
 
 Authorization codes expire after two minutes and are removed when exchanged. The redirect URI, client ID, and PKCE verifier must match the original request. Client authentication is not implemented; PKCE protects this public-client flow.
@@ -269,7 +270,7 @@ Refresh tokens are exchanged at `/oauth2/token`:
 POST /oauth2/token
 Content-Type: application/x-www-form-urlencoded
 
-grantType=refresh_token&clientId=default-web&refreshToken=<refresh-token>
+grant_type=refresh_token&client_id=default-web&refresh_token=<refresh-token>
 ```
 
 Refresh-token rotation is enforced: the current token is marked used and revoked, and a new token set is issued for the same audience. Revoke a refresh token with:
@@ -281,7 +282,7 @@ Content-Type: application/x-www-form-urlencoded
 token=<refresh-token>
 ```
 
-`GET /connect/logout?postLogoutRedirectUri=<uri>` redirects to the supplied URI, or `/` when omitted. It does not currently implement a complete OIDC logout session.
+`GET /connect/logout?post_logout_redirect_uri=<uri>` redirects to the supplied URI, or `/` when omitted. It does not currently implement a complete OIDC logout session.
 
 ## Data model and development data
 

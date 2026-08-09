@@ -277,7 +277,7 @@ from inside each container before testing login.
 
 ## Troubleshooting checklist
 
-- `redirectUri` is an exact match, including scheme, port, path, and trailing slash.
+- `redirect_uri` is an exact match, including scheme, port, path, and trailing slash.
 - `resource` is present and appears in `IDENTITY_ALLOWED_BACKENDS`.
 - The backend's issuer is identical to the JWT `iss` claim.
 - The backend can reach `/oauth2/jwks`.
