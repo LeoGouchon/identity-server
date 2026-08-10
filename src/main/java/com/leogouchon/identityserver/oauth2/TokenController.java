@@ -2,11 +2,8 @@ package com.leogouchon.identityserver.oauth2;
 
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.Map;
@@ -60,9 +57,16 @@ public class TokenController {
     }
 
     @GetMapping("/connect/logout")
-    public void logout(@RequestParam(name = "post_logout_redirect_uri", required = false) String postLogoutRedirectUri,
-                       jakarta.servlet.http.HttpServletResponse response) throws IOException {
-        response.sendRedirect(oauth2.logout(postLogoutRedirectUri));
+    public void logout(@RequestParam(name = "client_id", required = false) String clientId,
+                       @RequestParam(name = "post_logout_redirect_uri", required = false) String postLogoutRedirectUri,
+                       @RequestParam(name = "state", required = false) String state,
+                       jakarta.servlet.http.HttpServletRequest request,
+                       jakarta.servlet.http.HttpServletResponse response,
+                       Authentication authentication) throws IOException {
+        String redirect = oauth2.logout(clientId, postLogoutRedirectUri, state);
+        new SecurityContextLogoutHandler()
+                .logout(request, response, authentication);
+        response.sendRedirect(redirect);
     }
 
     @PostMapping("/oauth2/revoke")

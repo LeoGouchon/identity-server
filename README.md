@@ -282,7 +282,15 @@ Content-Type: application/x-www-form-urlencoded
 token=<refresh-token>
 ```
 
-`GET /connect/logout?post_logout_redirect_uri=<uri>` redirects to the supplied URI, or `/` when omitted. It does not currently implement a complete OIDC logout session.
+RP-initiated logout is available through:
+
+```http
+GET /connect/logout?client_id=<client-id>&post_logout_redirect_uri=<registered-uri>&state=<state>
+```
+
+The redirect URI must be registered for the client, the identity-provider HTTP session is invalidated, and `state` is returned to the client. If no redirect URI is supplied, the server redirects to `/`.
+
+The client should revoke its refresh token through `/oauth2/revoke` before redirecting to `/connect/logout`, then remove all locally stored tokens. Access tokens are JWTs and cannot be invalidated server-side by this endpoint.
 
 ## Data model and development data
 

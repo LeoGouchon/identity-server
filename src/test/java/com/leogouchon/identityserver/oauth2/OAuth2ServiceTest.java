@@ -145,11 +145,14 @@ class OAuth2ServiceTest {
     }
 
     @Test
-    void userinfoSupportsJwtAndLogoutDefaultsToRoot() {
+    void userinfoSupportsJwtAndLogoutValidatesRedirectAndPreservesState() {
         when(authentication.getPrincipal()).thenReturn(null);
         assertEquals(user.getId().toString(), service.userinfo(authentication).get("sub"));
-        assertEquals("/", service.logout(null));
-        assertEquals("https://client.example/logout", service.logout("https://client.example/logout"));
+        assertEquals("/", service.logout(null, null, null));
+        assertEquals("http://localhost:4200/auth/callback?state=logout-state",
+                service.logout("web-client", "http://localhost:4200/auth/callback", "logout-state"));
+        assertThrows(RuntimeException.class,
+                () -> service.logout("web-client", "https://attacker.example", null));
     }
 
     @Test

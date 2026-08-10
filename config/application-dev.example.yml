@@ -39,9 +39,10 @@ identity:
       redirect-uris:
         - http://localhost:4200/auth/callback
 
-    - client-id: admin-web
+    - client-id: kicker-client
       redirect-uris:
         - http://localhost:5173/auth/callback
+        - http://localhost:5173/auth/logout-callback
 
   allowed-backends:
     - default-api

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -127,8 +128,23 @@ public class OAuth2Service {
         return Map.of("sub", user.getId().toString(), "email", user.getEmail(), "email_verified", true);
     }
 
-    public String logout(String postLogoutRedirectUri) {
-        return postLogoutRedirectUri == null ? "/" : postLogoutRedirectUri;
+    public String logout(String clientId, String postLogoutRedirectUri, String state) {
+        if (postLogoutRedirectUri == null || postLogoutRedirectUri.isBlank()) {
+            return "/";
+        }
+
+        if (clientId == null || !clients.getOrDefault(clientId, Set.of()).contains(postLogoutRedirectUri)) {
+            throw new OAuthException("invalid_request");
+        }
+
+        if (state == null || state.isBlank()) {
+            return postLogoutRedirectUri;
+        }
+
+        return UriComponentsBuilder.fromUriString(postLogoutRedirectUri)
+                .queryParam("state", state)
+                .build()
+                .toUriString();
     }
 
     public void revoke(String token) {
