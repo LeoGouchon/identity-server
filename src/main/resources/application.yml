@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: identity-server
+  datasource:
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      keepalive-time: 0
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+server:
+  port: ${PORT:8080}
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: ${IDENTITY_COOKIE_SECURE:false}
+        same-site: ${IDENTITY_COOKIE_SAME_SITE:LAX}
+
+cookie:
+  secure: false
