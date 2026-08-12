@@ -63,7 +63,7 @@ export const LoginPage = () => {
                         label="Adresse mail"
                         validateStatus={showError ? 'error' : undefined}
                         help={showError ? 'Email ou mot de passe incorrect.' : undefined}
-                        validateDebounce={1500}
+                        validateDebounce={1000}
                         rules={[{
                             type: 'email',
                             message: 'Veuillez entrer un mail valide.'

@@ -11,7 +11,7 @@ export const AppContent = () => {
     const {pathname} = useLocation();
 
     const routing = useRoutes(routes);
-    const CARD_PAGE_ROUTE: string[] = [ROUTES.LOGIN]
+    const CARD_PAGE_ROUTE: string[] = [ROUTES.LOGIN, ROUTES.SIGNUP]
 
     const screens = useBreakpoint();
     const isMobile = !screens.md;

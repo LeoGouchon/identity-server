@@ -4,7 +4,7 @@ import { AboutPage } from '../pages/AboutPage';
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
 import { LoginPage } from '../modules/login/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { SignupPage } from '../pages/SignupPage';
+import { SignupPage } from '../modules/signup/SignupPage';
 import { ROUTES } from './constant';
 
 export const routes: RouteObject[] = [
