@@ -52,7 +52,8 @@ public class RegistrationService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
         }
 
-        IdentityUser user = new IdentityUser(request.email(), passwordEncoder.encode(request.password()));
+        IdentityUser user = new IdentityUser(request.email(), passwordEncoder.encode(request.password()),
+                request.firstName(), request.lastName());
         users.save(user);
         invitation.setUsedAt(LocalDateTime.now(ZoneOffset.UTC));
         invitations.save(invitation);
@@ -77,6 +78,8 @@ public class RegistrationService {
         Map<String, Object> request = new HashMap<>();
         request.put("identityUserId", user.getId());
         request.put("email", user.getEmail());
+        request.put("firstName", user.getFirstName());
+        request.put("lastName", user.getLastName());
         request.put("playerId", invitation.getPlayerId());
         restClient.post()
                 .uri(provisioningUrl)

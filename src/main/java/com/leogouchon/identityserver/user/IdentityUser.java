@@ -17,6 +17,10 @@ public class IdentityUser {
     private UUID id;
     @Column(nullable = false, unique = true, length = 320)
     private String email;
+    @Column(name = "first_name", length = 100)
+    private String firstName;
+    @Column(name = "last_name", length = 100)
+    private String lastName;
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
     @Column(nullable = false)
@@ -28,5 +32,11 @@ public class IdentityUser {
         this.id = UUID.randomUUID();
         this.email = email;
         this.passwordHash = passwordHash;
+    }
+
+    public IdentityUser(String email, String passwordHash, String firstName, String lastName) {
+        this(email, passwordHash);
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 }

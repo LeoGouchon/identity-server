@@ -33,8 +33,14 @@ cookie:
   secure: false
 
 identity:
+  auth-frontend-url: http://localhost:5180
   issuer: http://localhost:8081
   oauth-clients:
+    - client-id: auth-portal
+      redirect-uris:
+        - http://localhost:5180/auth/callback
+        - http://localhost:5180/auth/logout-callback
+
     - client-id: web-client
       redirect-uris:
         - http://localhost:4200/auth/callback
@@ -56,5 +62,6 @@ identity:
     allowed-origins:
       - http://localhost:4200
       - http://localhost:5173
+      - http://localhost:5180
   provisioning-url: http://localhost:8080/api/internal/identity-users
   provisioning-secret: change-me

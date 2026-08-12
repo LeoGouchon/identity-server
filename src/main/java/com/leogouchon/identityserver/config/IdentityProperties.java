@@ -10,6 +10,7 @@ import java.util.List;
 @Getter
 @ConfigurationProperties(prefix = "identity")
 public class IdentityProperties {
+    private String authFrontendUrl = "http://localhost:5180";
     private List<OAuthClient> oauthClients = List.of();
     private List<String> allowedBackends = List.of();
     private List<String> scopes = List.of();

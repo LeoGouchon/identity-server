@@ -1,0 +1,33 @@
+import './index.css';
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+    CategoryScale,
+    Chart as ChartJS,
+    Filler,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
+    Tooltip,
+} from 'chart.js';
+import annotationPlugin from 'chartjs-plugin-annotation';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+
+import { App } from './App';
+import { ThemeProvider } from './context/ThemeProvider';
+
+ChartJS.register(LinearScale, CategoryScale, PointElement, LineElement, Tooltip, Legend, Filler, annotationPlugin);
+
+const queryClient = new QueryClient();
+
+createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+        <QueryClientProvider client={queryClient}>
+            <ThemeProvider>
+                <App />
+            </ThemeProvider>
+        </QueryClientProvider>
+    </StrictMode>
+);
