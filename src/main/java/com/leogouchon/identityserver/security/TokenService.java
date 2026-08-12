@@ -59,10 +59,12 @@ public class TokenService {
 
     public String accessToken(IdentityUser user, String audience, String scope) {
         Instant now = Instant.now(Clock.systemUTC());
-        return Jwts.builder().header().keyId("identity-rsa-1").and().issuer(issuer).subject(user.getId().toString())
+        var builder = Jwts.builder().header().keyId("identity-rsa-1").and().issuer(issuer).subject(user.getId().toString())
                 .audience().add(audience).and().issuedAt(Date.from(now)).expiration(Date.from(now.plusSeconds(accessTtl)))
                 .claim("scope", scope).claim("email", user.getEmail())
-                .signWith(keyPair.getPrivate(), Jwts.SIG.RS256).compact();
+                .claim("email_verified", true);
+        addNameClaims(builder, user);
+        return builder.signWith(keyPair.getPrivate(), Jwts.SIG.RS256).compact();
     }
 
     public String idToken(IdentityUser user, String clientId, String nonce) {
@@ -71,6 +73,12 @@ public class TokenService {
                 .audience().add(clientId).and().issuedAt(Date.from(now)).expiration(Date.from(now.plusSeconds(accessTtl)))
                 .claim("email", user.getEmail()).claim("email_verified", true);
         if (nonce != null) builder.claim("nonce", nonce);
+        addNameClaims(builder, user);
         return builder.signWith(keyPair.getPrivate(), Jwts.SIG.RS256).compact();
+    }
+
+    private static void addNameClaims(io.jsonwebtoken.JwtBuilder builder, IdentityUser user) {
+        if (user.getFirstName() != null) builder.claim("given_name", user.getFirstName());
+        if (user.getLastName() != null) builder.claim("family_name", user.getLastName());
     }
 }
