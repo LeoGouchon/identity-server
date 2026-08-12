@@ -15,13 +15,13 @@ public class IdentityProperties {
     private List<String> allowedBackends = List.of();
     private List<String> scopes = List.of();
     private Cors cors = new Cors();
+    private PasswordReset passwordReset = new PasswordReset();
 
     @Setter
     @Getter
     public static class OAuthClient {
         private String clientId;
         private List<String> redirectUris = List.of();
-
     }
 
     @Setter
@@ -29,4 +29,11 @@ public class IdentityProperties {
     public static class Cors {
         private List<String> allowedOrigins = List.of();
     }
+
+    @Setter
+    @Getter
+    public static class PasswordReset {
+        private int tokenTtlMinutes = 30;
+    }
+
 }

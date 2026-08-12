@@ -5,11 +5,12 @@ import {Link, useSearchParams} from 'react-router-dom';
 import {useSignup} from '../../hooks/useSignup';
 import {
     StyledIconImage,
-    StyledLoginCard,
+    StyledCard,
     StyledLoginHeader,
     StyledTitleIconText,
 } from '../login/LoginPage.style';
 import {ROUTES} from '../../routes/constant';
+import useBreakpoint from "antd/es/grid/hooks/useBreakpoint";
 
 type SignupValues = {
     firstName: string;
@@ -22,6 +23,9 @@ type SignupValues = {
 const {Text, Paragraph} = Typography;
 
 export const SignupPage = () => {
+    const screens = useBreakpoint();
+    const isMobile = !screens.md;
+
     const [params] = useSearchParams();
     const invitationToken = params.get('invitation') ?? params.get('token');
     const signup = useSignup();
@@ -31,14 +35,14 @@ export const SignupPage = () => {
     }, [invitationToken]);
 
     if (!invitationToken) {
-        return <StyledLoginCard>
+        return <StyledCard isMobile={isMobile}>
             <Result
                 status="warning"
                 title="Invitation requise"
                 subTitle="La création de compte est uniquement accessible depuis un lien d’invitation."
                 extra={<Button type="primary"><Link to={ROUTES.ABOUT}>En savoir plus</Link></Button>}
             />
-        </StyledLoginCard>;
+        </StyledCard>;
     }
 
     const submit = ({firstName, lastName, email, password}: SignupValues) => {
@@ -46,14 +50,14 @@ export const SignupPage = () => {
     };
 
     if (signup.isSuccess) return (
-        <StyledLoginCard>
+        <StyledCard isMobile={isMobile}>
             <Result
                 status="success"
                 title="Votre compte est prêt"
                 subTitle="Vous pouvez maintenant vous connecter."
                 extra={<Button type="primary"><Link to={ROUTES.LOGIN}>Se connecter</Link></Button>}
             />
-        </StyledLoginCard>
+        </StyledCard>
     );
 
     const errorMessage = signup.error?.status === 409
@@ -63,7 +67,7 @@ export const SignupPage = () => {
             : undefined;
 
     return (
-        <StyledLoginCard>
+        <StyledCard isMobile={isMobile}>
             <StyledLoginHeader vertical>
                 <Flex gap="small" align="baseline" wrap="nowrap">
                     <StyledIconImage src="/assets/icon.svg" alt="Icône Gouchon"/>
@@ -149,5 +153,5 @@ export const SignupPage = () => {
             <Paragraph style={{marginTop: '1rem', marginBottom: 0}}>
                 Déjà inscrit ? <Link to={ROUTES.LOGIN}>Se connecter</Link>
             </Paragraph>
-        </StyledLoginCard>);
+        </StyledCard>);
 };

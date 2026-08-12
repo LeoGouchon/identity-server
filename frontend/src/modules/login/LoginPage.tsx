@@ -3,14 +3,18 @@ import {useEffect, useState} from 'react';
 import {Link, useSearchParams} from 'react-router-dom';
 
 import {ROUTES} from "../../routes/constant";
-import {LOGIN_ENDPOINT} from "../../hooks/useLogin";
-import {StyledIconImage, StyledLoginCard, StyledLoginHeader, StyledTitleIconText} from "./LoginPage.style";
+import {API_ENDPOINTS} from '../../api/constant';
+import {StyledIconImage, StyledCard, StyledLoginHeader, StyledTitleIconText} from "./LoginPage.style";
+import useBreakpoint from "antd/es/grid/hooks/useBreakpoint";
 
 const LOGIN_EMAIL_STORAGE_KEY = 'identity-login-email';
 
 const {Text} = Typography;
 
 export const LoginPage = () => {
+    const screens = useBreakpoint();
+    const isMobile = !screens.md;
+
     const [params] = useSearchParams();
     const hasError = params.get('error') === 'authentication_failed';
     const [showError, setShowError] = useState(hasError);
@@ -31,7 +35,7 @@ export const LoginPage = () => {
     }, [form, hasError]);
 
     return (
-        <StyledLoginCard>
+        <StyledCard isMobile={isMobile}>
             <StyledLoginHeader vertical>
                 <Flex gap={'small'} align={'baseline'} wrap={'nowrap'}>
                     <StyledIconImage src={'/assets/icon.svg'} alt={'Gouchon icon\'s'}/>
@@ -40,7 +44,7 @@ export const LoginPage = () => {
                 <Text type={'secondary'}>Portail de connexion aux applications Gouchon</Text>
             </StyledLoginHeader>
             <form
-                action={LOGIN_ENDPOINT}
+                action={API_ENDPOINTS.LOGIN}
                 method="post"
                 onSubmit={() => sessionStorage.setItem(LOGIN_EMAIL_STORAGE_KEY, email)}
                 style={{marginBottom: '1rem'}}
@@ -109,6 +113,6 @@ export const LoginPage = () => {
                 </Form>
             </form>
             <Link to={ROUTES.FORGOT_PASSWORD}>Mot de passe oublié ?</Link>
-        </StyledLoginCard>
+        </StyledCard>
     );
 };

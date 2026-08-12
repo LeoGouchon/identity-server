@@ -1,8 +1,15 @@
 import styled from "@emotion/styled";
 import {Card, Flex} from "antd";
+import {css} from "@emotion/react";
 
-export const StyledLoginCard = styled(Card)`
+export const StyledCard = styled(Card)<{ isMobile: boolean }>`
     padding-top: var(--ant-padding-sm);
+    
+    ${({ isMobile }) => (isMobile ? css`
+        width: 100%;
+    ` : css`
+        min-width: 400px;
+    `)}
 `;
 
 export const StyledIconImage = styled.img`

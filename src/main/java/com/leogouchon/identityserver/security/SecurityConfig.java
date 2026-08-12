@@ -36,7 +36,7 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http,
                                             @Value("${identity.auth-frontend-url:http://localhost:5180}") String authFrontendUrl) throws Exception {
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/oauth2/token", "/oauth2/revoke", "/api/internal/**"))
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/oauth2/token", "/oauth2/revoke", "/api/internal/**", "/api/v1/password/**"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/.well-known/**", "/oauth2/jwks", "/oauth2/token", "/oauth2/revoke", "/error", "/api/internal/**").permitAll()
                         .requestMatchers("/oauth2/authorize", "/userinfo", "/connect/logout").authenticated()

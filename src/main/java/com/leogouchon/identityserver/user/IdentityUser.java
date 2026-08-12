@@ -39,4 +39,8 @@ public class IdentityUser {
         this.firstName = firstName;
         this.lastName = lastName;
     }
+
+    public void changePassword(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
+    }
 }
