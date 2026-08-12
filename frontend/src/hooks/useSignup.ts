@@ -1,4 +1,5 @@
 import {useMutation} from '@tanstack/react-query';
+import {API_ENDPOINTS} from '../api/constant';
 
 export type SignupCredentials = {
     firstName: string;
@@ -20,10 +21,8 @@ export class SignupError extends Error {
     }
 }
 
-const identityUrl = (import.meta.env.VITE_IDENTITY_URL ?? '').replace(/\/$/, '');
-
 const signup = async (credentials: SignupCredentials): Promise<SignupResponse> => {
-    const response = await fetch(`${identityUrl}/api/v1/signup`, {
+    const response = await fetch(API_ENDPOINTS.SIGNUP, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

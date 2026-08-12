@@ -1,17 +1,15 @@
 import {useMutation} from '@tanstack/react-query';
+import {API_ENDPOINTS} from '../api/constant';
 
 export type LoginCredentials = {
     email: string;
     password: string;
 };
 
-const identityUrl = (import.meta.env.VITE_IDENTITY_URL ?? '').replace(/\/$/, '');
-export const LOGIN_ENDPOINT = `${identityUrl}/login`;
-
 const login = async ({email, password}: LoginCredentials): Promise<void> => {
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = LOGIN_ENDPOINT;
+    form.action = API_ENDPOINTS.LOGIN;
     form.style.display = 'none';
 
     for (const [name, value] of [['username', email], ['password', password]]) {

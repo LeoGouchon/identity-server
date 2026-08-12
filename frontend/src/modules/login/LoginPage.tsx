@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import {Link, useSearchParams} from 'react-router-dom';
 
 import {ROUTES} from "../../routes/constant";
-import {LOGIN_ENDPOINT} from "../../hooks/useLogin";
+import {API_ENDPOINTS} from '../../api/constant';
 import {StyledIconImage, StyledLoginCard, StyledLoginHeader, StyledTitleIconText} from "./LoginPage.style";
 
 const LOGIN_EMAIL_STORAGE_KEY = 'identity-login-email';
@@ -40,7 +40,7 @@ export const LoginPage = () => {
                 <Text type={'secondary'}>Portail de connexion aux applications Gouchon</Text>
             </StyledLoginHeader>
             <form
-                action={LOGIN_ENDPOINT}
+                action={API_ENDPOINTS.LOGIN}
                 method="post"
                 onSubmit={() => sessionStorage.setItem(LOGIN_EMAIL_STORAGE_KEY, email)}
                 style={{marginBottom: '1rem'}}
