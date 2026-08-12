@@ -1,6 +1,16 @@
 spring:
   application:
     name: identity-server
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    from: ${SMTP_FROM:Identity Server <no-reply@example.com>}
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS_ENABLE:true}
+      mail.smtp.ssl.enable: ${SMTP_SSL_ENABLE:false}
   datasource:
     hikari:
       minimum-idle: 1
@@ -26,3 +36,7 @@ server:
 
 cookie:
   secure: false
+
+identity:
+  password-reset:
+    token-ttl-minutes: ${IDENTITY_PASSWORD_RESET_TTL_MINUTES:30}

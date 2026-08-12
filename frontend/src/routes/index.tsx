@@ -1,7 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 
 import { AboutPage } from '../pages/AboutPage';
-import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
+import { ForgotPasswordPage } from '../modules/forgot-password/ForgotPasswordPage';
 import { LoginPage } from '../modules/login/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { SignupPage } from '../modules/signup/SignupPage';

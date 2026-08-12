@@ -1,6 +1,16 @@
 spring:
   application:
     name: identity-server
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    from: ${SMTP_FROM:Identity Server <no-reply@example.com>}
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS_ENABLE:true}
+      mail.smtp.ssl.enable: ${SMTP_SSL_ENABLE:false}
   datasource:
     url: jdbc:postgresql://db:5432/${DB_NAME:identity}
     username: ${DB_USER:identity}
@@ -65,3 +75,5 @@ identity:
       - http://localhost:5180
   provisioning-url: http://localhost:8080/api/internal/identity-users
   provisioning-secret: change-me
+  password-reset:
+    token-ttl-minutes: 30
