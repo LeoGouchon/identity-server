@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type="text/css">
+        @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,100..900&display=swap');
+    </style>
+    <title th:replace="${title}">GOUCHON HUB</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: Arial, Helvetica, sans-serif; color: #18181b;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f4f5;">
+    <tr>
+        <td align="center" style="padding: 32px 16px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                   style="max-width: 600px; background-color: #ffffff; border-radius: 8px;">
+                <tr>
+                    <td style="padding: 28px 32px 12px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                                <td style="vertical-align: middle; padding-right: 12px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="31"
+                                         viewBox="0 0 83.61 74.77" role="img" aria-label="Identity Server"
+                                         style="display: block;">
+                                        <path fill="#3c3c3b"
+                                              d="M26 74.77 0 74.8V21.44A21.44 21.44 0 0 1 21.45 0l62.1 0v21.44l-62.09 0V52a.61.61 0 0 0 1 .47L49.9 29.29A10.69 10.69 0 0 1 57.64 26h26v48.76H62.18V49a.64.64 0 0 0-1.1-.43L33.76 71.46A10.69 10.69 0 0 1 26 74.77Z"/>
+                                    </svg>
+                                </td>
+                                <td style="vertical-align: middle; font-family: 'Big Shoulders', Arial, Helvetica, sans-serif; font-size: 30px; font-weight: bold; color: #3c3c3b;">
+                                    GOUCHON HUB
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td th:replace="${content}" style="padding: 12px 32px 28px; font-size: 16px; line-height: 1.5; color: #3c3c3b;">
+                        Contenu du message
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 16px 32px 28px; color: #71717a; font-size: 12px;">Cet email a été envoyé
+                        automatiquement. Merci de ne pas y répondre.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
