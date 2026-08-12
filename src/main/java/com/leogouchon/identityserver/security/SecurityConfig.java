@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage(authFrontendUrl + "/login")
                         .loginProcessingUrl("/login")
-                        .failureUrl(authFrontendUrl + "/login?error=true")
+                        .failureUrl(authFrontendUrl + "/login?error=authentication_failed")
                         .permitAll())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> {}))
                 .logout(logout -> logout.logoutSuccessUrl("/"));
