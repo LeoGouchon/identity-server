@@ -18,12 +18,17 @@ export const LoginPage = () => {
     const [form] = Form.useForm();
 
     useEffect(() => {
+        if (!hasError) {
+            sessionStorage.removeItem(LOGIN_EMAIL_STORAGE_KEY);
+            return;
+        }
+
         const storedEmail = sessionStorage.getItem(LOGIN_EMAIL_STORAGE_KEY);
         if (storedEmail) {
             setEmail(storedEmail);
             form.setFieldsValue({username: storedEmail});
         }
-    }, [form]);
+    }, [form, hasError]);
 
     return (
         <StyledLoginCard>
