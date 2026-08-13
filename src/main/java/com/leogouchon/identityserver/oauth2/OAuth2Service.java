@@ -125,7 +125,13 @@ public class OAuth2Service {
                 ? UUID.fromString(jwt.getSubject())
                 : users.findByEmailIgnoreCase(authentication.getName()).orElseThrow().getId();
         IdentityUser user = users.findById(subject).orElseThrow();
-        return Map.of("sub", user.getId().toString(), "email", user.getEmail(), "email_verified", true);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("sub", user.getId().toString());
+        result.put("email", user.getEmail());
+        result.put("email_verified", true);
+        if (user.getFirstName() != null) result.put("given_name", user.getFirstName());
+        if (user.getLastName() != null) result.put("family_name", user.getLastName());
+        return result;
     }
 
     public String logout(String clientId, String postLogoutRedirectUri, String state) {
