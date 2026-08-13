@@ -1,6 +1,7 @@
 package com.leogouchon.identityserver.registration;
 
 import com.leogouchon.identityserver.invitation.InvitationToken;
+import com.leogouchon.identityserver.config.IdentityProperties;
 import com.leogouchon.identityserver.invitation.InvitationTokenRepository;
 import com.leogouchon.identityserver.registration.dto.InvitationRequest;
 import com.leogouchon.identityserver.registration.dto.SignupRequest;
@@ -28,13 +29,20 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class RegistrationServiceTest {
-    @Mock IdentityUserRepository users;
-    @Mock InvitationTokenRepository invitations;
-    @Mock PasswordEncoder passwordEncoder;
-    @Mock RestClient.Builder restClientBuilder;
-    @Mock RestClient restClient;
-    @Mock RestClient.RequestBodyUriSpec requestBody;
-    @Mock RestClient.ResponseSpec response;
+    @Mock
+    IdentityUserRepository users;
+    @Mock
+    InvitationTokenRepository invitations;
+    @Mock
+    PasswordEncoder passwordEncoder;
+    @Mock
+    RestClient.Builder restClientBuilder;
+    @Mock
+    RestClient restClient;
+    @Mock
+    RestClient.RequestBodyUriSpec requestBody;
+    @Mock
+    RestClient.ResponseSpec response;
 
     private RegistrationService service;
 
@@ -46,26 +54,34 @@ class RegistrationServiceTest {
         when(requestBody.header(any(String.class), any(String.class))).thenReturn(requestBody);
         when(requestBody.body(any(Object.class))).thenReturn(requestBody);
         when(requestBody.retrieve()).thenReturn(response);
+        IdentityProperties properties = new IdentityProperties();
+        IdentityProperties.OAuthClient client = new IdentityProperties.OAuthClient();
+        client.setClientId("hubscore");
+        client.setDisplayName("Hubscore");
+        client.setProvisioningUrl("http://api.example/internal/users");
+        properties.setOauthClients(java.util.List.of(client));
         service = new RegistrationService(users, invitations, passwordEncoder, restClientBuilder,
-                "http://api.example/internal/users", "secret");
+                "secret", "http://localhost:5180", properties);
     }
 
     @Test
     void createInvitationRequiresSecretAndPersistsSevenDayInvitation() {
         UUID playerId = UUID.randomUUID();
-        var response = service.createInvitation("secret", new InvitationRequest(playerId));
+        var response = service.createInvitation("secret", new InvitationRequest("hubscore", playerId));
 
         assertNotNull(response.token());
         verify(invitations).save(argThat(invitation -> invitation.getPlayerId().equals(playerId)
+                && invitation.getClientId().equals("hubscore")
                 && invitation.getExpiresAt().isAfter(LocalDateTime.now(ZoneOffset.UTC).plusDays(6))));
         assertThrows(org.springframework.web.server.ResponseStatusException.class,
-                () -> service.createInvitation("wrong", new InvitationRequest(playerId)));
+                () -> service.createInvitation("wrong", new InvitationRequest("hubscore", playerId)));
     }
 
     @Test
     void signupCreatesUserConsumesInvitationAndProvisionsDownstreamUser() {
         InvitationToken invitation = new InvitationToken();
         invitation.setToken("invitation");
+        invitation.setClientId("hubscore");
         invitation.setExpiresAt(LocalDateTime.now(ZoneOffset.UTC).plusDays(1));
         invitation.setPlayerId(UUID.randomUUID());
         when(invitations.findByToken("invitation")).thenReturn(Optional.of(invitation));
@@ -76,7 +92,7 @@ class RegistrationServiceTest {
 
         assertEquals("user@example.com", response.email());
         verify(users).save(argThat(user -> user.getEmail().equals("user@example.com") && user.getPasswordHash().equals("encoded")));
-        verify(invitations).save(argThat(value -> value.getUsedAt() != null));
+        verify(invitations, never()).save(any(InvitationToken.class));
     }
 
     @Test

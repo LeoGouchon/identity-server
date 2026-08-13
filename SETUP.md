@@ -89,15 +89,15 @@ IDENTITY_ISSUER=https://login.acme.test
 # Exact browser origins allowed to call the identity server.
 IDENTITY_CORS_ALLOWED_ORIGINS_0=https://recipes.acme.test
 
-# OAuth clients and redirect URIs are indexed lists.
+# OAuth clients, redirect URIs, and application provisioning endpoints are indexed lists.
 IDENTITY_OAUTH_CLIENTS_0_CLIENT_ID=acme-recipes-web
 IDENTITY_OAUTH_CLIENTS_0_REDIRECT_URIS_0=https://recipes.acme.test/auth/callback
+IDENTITY_OAUTH_CLIENTS_0_PROVISIONING_URL=https://api.acme.test/api/internal/identity-users
 
 # The audience/resource values that the identity server is allowed to issue.
 IDENTITY_ALLOWED_BACKENDS_0=acme-recipes-api
 
-# URL called after a user signs up, so the backend can create its local user record.
-IDENTITY_PROVISIONING_URL=http://backend:8080/api/internal/identity-users
+# Shared secret used for the per-application provisioning endpoint.
 IDENTITY_PROVISIONING_SECRET=<same-long-random-secret-as-backend>
 
 # Recommended outside local development.
@@ -262,7 +262,7 @@ IDENTITY_ALLOWED_BACKENDS_0=acme-recipes-api
 IDENTITY_PROVISIONING_SECRET=replace-this-in-local-development
 
 # When the identity server runs in Docker and the backend is exposed on the host:
-IDENTITY_PROVISIONING_URL=http://host.docker.internal:8080/api/internal/identity-users
+IDENTITY_OAUTH_CLIENTS_0_PROVISIONING_URL=http://host.docker.internal:8080/api/internal/identity-users
 ```
 
 The backend container must also be able to reach the identity server. On Docker Desktop, use

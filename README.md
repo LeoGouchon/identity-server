@@ -51,14 +51,13 @@ IDENTITY_SCOPES_1=profile
 IDENTITY_SCOPES_2=email
 IDENTITY_ACCESS_TOKEN_TTL_SECONDS=600
 IDENTITY_REFRESH_TOKEN_TTL_DAYS=30
-IDENTITY_PROVISIONING_URL=http://localhost:8080/api/internal/identity-users
 IDENTITY_PROVISIONING_SECRET=change-me     # replace outside local development
 ```
 
 When both applications run directly on the host, run the identity server on a free port such as `8081`, set its `PORT`
 and `IDENTITY_ISSUER` consistently, and leave the downstream API on its default `8080` port. When the identity server
-runs in Docker, configure `IDENTITY_PROVISIONING_URL` so the container can reach the downstream API; `localhost` inside
-the container refers to the identity-server container.
+runs in Docker, configure each OAuth client's `provisioning-url` so its container can reach the corresponding downstream
+API.
 
 OAuth clients are configured as a YAML list in `src/main/resources/application.yml`:
 
@@ -66,6 +65,8 @@ OAuth clients are configured as a YAML list in `src/main/resources/application.y
 identity:
   oauth-clients:
     - client-id: web-client
+      display-name: Web application
+      provisioning-url: http://localhost:8080/api/internal/identity-users
       redirect-uris:
         - http://localhost:4200/auth/callback
     - client-id: admin-web
@@ -268,7 +269,7 @@ After a successful password change, a separate confirmation email is sent to the
 
 ## Registration and identity provisioning
 
-Registration is invitation-based:
+Registration is invitation-based. The invitation is tied to one OAuth client/application:
 
 1. An authorized internal caller creates an invitation:
 
@@ -277,7 +278,7 @@ Registration is invitation-based:
    X-Identity-Provisioning-Secret: <shared-secret>
    Content-Type: application/json
 
-   {"playerId": "<optional application user or player UUID>"}
+   {"clientId": "web-client", "playerId": "<optional application user or player UUID>"}
    ```
 
 2. The identity server creates a seven-day invitation token.
@@ -290,9 +291,10 @@ Registration is invitation-based:
    {"email": "user@example.com", "password": "<password>", "invitationToken": "<token>"}
    ```
 
-4. The identity server validates and consumes the invitation, stores a BCrypt password hash, and creates
-   `identity_user`.
-5. It calls the configured `IDENTITY_PROVISIONING_URL`, normally the downstream application's endpoint:
+4. The identity server validates the invitation, stores a BCrypt password hash, and creates `identity_user`.
+5. The user then logs in through the identity server. The invitation remains pending until this authenticated step.
+6. The identity server calls the `provisioning-url` configured on the invitation's OAuth client, normally the downstream
+   application's endpoint:
 
    ```http
    POST /api/internal/identity-users
@@ -302,7 +304,10 @@ Registration is invitation-based:
    {"identityUserId": "<identity UUID>", "email": "user@example.com", "playerId": "<optional UUID>"}
    ```
 
-6. The downstream application creates or updates its local user record and optionally links it to application data.
+7. For an existing identity account, the invitation link keeps the invitation token through login and calls
+   `POST /api/v1/invitations/{token}/claim`; the same application provisioning endpoint then links the local user.
+8. The downstream application creates or updates only its own local user record and optionally links it to application
+   data.
 
 The identity server uses `IDENTITY_PROVISIONING_SECRET`; the downstream application uses its own provisioning-secret
 setting. These values must be identical. Keep them private and replace the `change-me` defaults outside local

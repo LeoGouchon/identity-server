@@ -27,7 +27,7 @@ export const SignupPage = () => {
     const isMobile = !screens.md;
 
     const [params] = useSearchParams();
-    const invitationToken = params.get('invitation') ?? params.get('token');
+    const invitationToken = params.get('invitation') ?? params.get('invitationToken') ?? params.get('token');
     const signup = useSignup();
 
     useEffect(() => {
@@ -55,7 +55,7 @@ export const SignupPage = () => {
                 status="success"
                 title="Votre compte est prêt"
                 subTitle="Vous pouvez maintenant vous connecter."
-                extra={<Button type="primary"><Link to={ROUTES.LOGIN}>Se connecter</Link></Button>}
+                extra={<Button type="primary"><Link to={`${ROUTES.LOGIN}?invitation=${encodeURIComponent(invitationToken)}`}>Se connecter</Link></Button>}
             />
         </StyledCard>
     );
@@ -151,7 +151,7 @@ export const SignupPage = () => {
                 </Button>
             </Form>
             <Paragraph style={{marginTop: '1rem', marginBottom: 0}}>
-                Déjà inscrit ? <Link to={ROUTES.LOGIN}>Se connecter</Link>
+                Déjà inscrit ? <Link to={`${ROUTES.LOGIN}?invitation=${encodeURIComponent(invitationToken)}`}>Se connecter</Link>
             </Paragraph>
         </StyledCard>);
 };

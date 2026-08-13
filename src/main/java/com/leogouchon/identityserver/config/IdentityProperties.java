@@ -21,6 +21,8 @@ public class IdentityProperties {
     @Getter
     public static class OAuthClient {
         private String clientId;
+        private String displayName;
+        private String provisioningUrl;
         private List<String> redirectUris = List.of();
     }
 
