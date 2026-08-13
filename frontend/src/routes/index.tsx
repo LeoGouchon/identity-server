@@ -1,6 +1,6 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 
-import { AboutPage } from '../pages/AboutPage';
+import { AboutPage } from '../modules/about/AboutPage';
 import { ForgotPasswordPage } from '../modules/forgot-password/ForgotPasswordPage';
 import { LoginPage } from '../modules/login/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';

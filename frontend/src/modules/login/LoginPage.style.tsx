@@ -4,6 +4,7 @@ import {css} from "@emotion/react";
 
 export const StyledCard = styled(Card)<{ isMobile: boolean }>`
     padding-top: var(--ant-padding-sm);
+    max-width: 540px;
     
     ${({ isMobile }) => (isMobile ? css`
         width: 100%;
