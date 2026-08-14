@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.HttpClientErrorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class RegistrationService {
+    private static final Logger log = LoggerFactory.getLogger(RegistrationService.class);
     private final IdentityUserRepository users;
     private final InvitationTokenRepository invitations;
     private final PasswordEncoder passwordEncoder;
@@ -115,6 +118,8 @@ public class RegistrationService {
         request.put("playerId", invitation.getPlayerId());
         IdentityProperties.OAuthClient client = client(invitation.getClientId());
         try {
+            log.info("Provisioning identity user {} for client {} via {}",
+                    user.getId(), client.getClientId(), client.getProvisioningUrl());
             restClient.post()
                     .uri(client.getProvisioningUrl())
                     .header("X-Identity-Provisioning-Secret", client.getProvisioningSecret())
@@ -122,8 +127,15 @@ public class RegistrationService {
                     .retrieve()
                     .toBodilessEntity();
         } catch (HttpClientErrorException.Unauthorized exception) {
+            log.error("Provisioning rejected with HTTP 401 for client {} via {}",
+                    client.getClientId(), client.getProvisioningUrl());
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
                     "Downstream provisioning rejected the configured secret for " + client.getClientId(), exception);
+        } catch (org.springframework.web.client.RestClientResponseException exception) {
+            log.error("Provisioning failed with HTTP {} for client {} via {}",
+                    exception.getStatusCode().value(), client.getClientId(), client.getProvisioningUrl());
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "Downstream provisioning failed for " + client.getClientId(), exception);
         }
     }
 
