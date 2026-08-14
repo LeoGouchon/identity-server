@@ -43,7 +43,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http,
                                             @Value("${identity.auth-frontend-url:http://localhost:5180}") String authFrontendUrl) throws Exception {
         http.cors(cors -> {})
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/oauth2/token", "/oauth2/revoke", "/api/internal/**", "/api/v1/password/**", "/api/v1/invitations/*/claim"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/oauth2/token", "/oauth2/revoke", "/api/internal/**", "/api/v1/signup", "/api/v1/password/**", "/api/v1/invitations/*/claim"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/.well-known/**", "/oauth2/jwks", "/oauth2/token", "/oauth2/revoke", "/error", "/api/internal/**").permitAll()
                         .requestMatchers("/oauth2/authorize", "/userinfo", "/connect/logout", "/api/v1/invitations/*/claim").authenticated()

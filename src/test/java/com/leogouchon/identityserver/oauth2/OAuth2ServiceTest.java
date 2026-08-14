@@ -40,7 +40,7 @@ class OAuth2ServiceTest {
     @BeforeEach
     void setUp() {
         IdentityProperties properties = new IdentityProperties();
-        properties.setAllowedBackends(List.of("default-api"));
+        properties.setAllowedRessources(List.of("default-api"));
         properties.setScopes(List.of("openid", "profile", "email"));
         IdentityProperties.OAuthClient client = new IdentityProperties.OAuthClient();
         client.setClientId("web-client");

@@ -59,15 +59,16 @@ class RegistrationServiceTest {
         client.setClientId("hubscore");
         client.setDisplayName("Hubscore");
         client.setProvisioningUrl("http://api.example/internal/users");
+        client.setProvisioningSecret("hubscore-secret");
         properties.setOauthClients(java.util.List.of(client));
         service = new RegistrationService(users, invitations, passwordEncoder, restClientBuilder,
-                "secret", "http://localhost:5180", properties);
+                "http://localhost:5180", properties);
     }
 
     @Test
     void createInvitationRequiresSecretAndPersistsSevenDayInvitation() {
         UUID playerId = UUID.randomUUID();
-        var response = service.createInvitation("secret", new InvitationRequest("hubscore", playerId));
+        var response = service.createInvitation("hubscore-secret", new InvitationRequest("hubscore", playerId));
 
         assertNotNull(response.token());
         verify(invitations).save(argThat(invitation -> invitation.getPlayerId().equals(playerId)
@@ -92,6 +93,9 @@ class RegistrationServiceTest {
 
         assertEquals("user@example.com", response.email());
         verify(users).save(argThat(user -> user.getEmail().equals("user@example.com") && user.getPasswordHash().equals("encoded")));
+        verify(requestBody).uri("http://api.example/internal/users");
+        verify(requestBody).header("X-Identity-Provisioning-Secret", "hubscore-secret");
+        verify(requestBody).body((Object) any());
         verify(invitations, never()).save(any(InvitationToken.class));
     }
 

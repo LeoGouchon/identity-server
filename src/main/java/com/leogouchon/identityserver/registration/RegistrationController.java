@@ -13,27 +13,34 @@ public class RegistrationController {
     private final RegistrationService registration;
 
     public RegistrationController(RegistrationService registration) {
+
         this.registration = registration;
     }
 
     @PostMapping("/v1/signup")
     public SignupResponse signup(@RequestBody SignupRequest request) {
+
         return registration.signup(request);
     }
 
     @PostMapping("/internal/invitations")
-    public InvitationResponse createInvitation(@RequestHeader("X-Identity-Provisioning-Secret") String provided,
-                                                @RequestBody InvitationRequest request) {
+    public InvitationResponse createInvitation(
+            @RequestHeader("X-Identity-Provisioning-Secret") String provided,
+            @RequestBody InvitationRequest request
+    ) {
+
         return registration.createInvitation(provided, request);
     }
 
     @GetMapping("/v1/invitations/{token}")
     public InvitationResponse invitation(@PathVariable String token) {
+
         return registration.invitation(token);
     }
 
     @PostMapping("/v1/invitations/{token}/claim")
     public InvitationResponse claim(@PathVariable String token, Authentication authentication) {
+
         return registration.claim(token, authentication);
     }
 }

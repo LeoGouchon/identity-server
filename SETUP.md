@@ -33,14 +33,14 @@ The identity server and backend must agree on these values:
 IDENTITY_ISSUER=https://login.acme.test
 IDENTITY_JWK_SET_URI=https://login.acme.test/oauth2/jwks
 IDENTITY_AUDIENCE=acme-recipes-api
-BACKEND_PROVISIONING_SECRET=<long-random-secret>
+BACKEND_PROVISIONING_SECRET=<long-random-secret-for-this-backend>
 ```
 
 `IDENTITY_ISSUER` is part of the JWT and must be exactly the same URL everywhere. Do not use
 `http://localhost:8081` in one service and `https://login.acme.test` in another.
 
-Generate a different provisioning secret for each environment. It is shared only between the
-identity server and the backend; never put it in frontend JavaScript.
+Generate a different provisioning secret for each environment and each backend. It is shared only between the
+identity server and the corresponding backend; never put it in frontend JavaScript.
 
 ## 2. Configure the identity server
 
@@ -93,12 +93,10 @@ IDENTITY_CORS_ALLOWED_ORIGINS_0=https://recipes.acme.test
 IDENTITY_OAUTH_CLIENTS_0_CLIENT_ID=acme-recipes-web
 IDENTITY_OAUTH_CLIENTS_0_REDIRECT_URIS_0=https://recipes.acme.test/auth/callback
 IDENTITY_OAUTH_CLIENTS_0_PROVISIONING_URL=https://api.acme.test/api/internal/identity-users
+IDENTITY_OAUTH_CLIENTS_0_PROVISIONING_SECRET=<long-random-secret-for-this-backend>
 
 # The audience/resource values that the identity server is allowed to issue.
-IDENTITY_ALLOWED_BACKENDS_0=acme-recipes-api
-
-# Shared secret used for the per-application provisioning endpoint.
-IDENTITY_PROVISIONING_SECRET=<same-long-random-secret-as-backend>
+IDENTITY_ALLOWED_RESSOURCES_0=acme-recipes-api
 
 # Recommended outside local development.
 IDENTITY_COOKIE_SECURE=true
@@ -138,7 +136,7 @@ Set these values in the backend environment:
 IDENTITY_ISSUER=https://login.acme.test
 IDENTITY_JWK_SET_URI=https://login.acme.test/oauth2/jwks
 IDENTITY_AUDIENCE=acme-recipes-api
-BACKEND_PROVISIONING_SECRET=<same-long-random-secret-as-identity-server>
+BACKEND_PROVISIONING_SECRET=<same-long-random-secret-as-identity-client-0>
 ```
 
 The corresponding Spring properties are:
@@ -258,8 +256,8 @@ IDENTITY_ISSUER=http://localhost:8081
 IDENTITY_CORS_ALLOWED_ORIGINS_0=http://localhost:4200
 IDENTITY_OAUTH_CLIENTS_0_CLIENT_ID=acme-recipes-web
 IDENTITY_OAUTH_CLIENTS_0_REDIRECT_URIS_0=http://localhost:4200/auth/callback
-IDENTITY_ALLOWED_BACKENDS_0=acme-recipes-api
-IDENTITY_PROVISIONING_SECRET=replace-this-in-local-development
+IDENTITY_ALLOWED_RESSOURCES_0=acme-recipes-api
+IDENTITY_OAUTH_CLIENTS_0_PROVISIONING_SECRET=replace-this-in-local-development
 
 # When the identity server runs in Docker and the backend is exposed on the host:
 IDENTITY_OAUTH_CLIENTS_0_PROVISIONING_URL=http://host.docker.internal:8080/api/internal/identity-users
@@ -278,11 +276,11 @@ from inside each container before testing login.
 ## Troubleshooting checklist
 
 - `redirect_uri` is an exact match, including scheme, port, path, and trailing slash.
-- `resource` is present and appears in `IDENTITY_ALLOWED_BACKENDS`.
+- `resource` is present and appears in `IDENTITY_ALLOWED_RESSOURCES`.
 - The backend's issuer is identical to the JWT `iss` claim.
 - The backend can reach `/oauth2/jwks`.
 - The website sends the access token, not the ID token.
-- `IDENTITY_PROVISIONING_SECRET` and `BACKEND_PROVISIONING_SECRET` are identical.
+- `IDENTITY_OAUTH_CLIENTS_0_PROVISIONING_SECRET` and `BACKEND_PROVISIONING_SECRET` are identical for the same backend.
 - A browser origin is present in `IDENTITY_CORS_ALLOWED_ORIGINS`.
 - Docker-to-host calls use `host.docker.internal`, not `localhost`.
 - HTTPS is enabled and `IDENTITY_COOKIE_SECURE=true` outside local development.

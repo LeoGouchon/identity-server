@@ -3,6 +3,7 @@ import {useEffect} from 'react';
 import {Link, useSearchParams} from 'react-router-dom';
 
 import {useSignup} from '../../hooks/useSignup';
+import {useInvitation} from '../../hooks/useInvitation';
 import {
     StyledIconImage,
     StyledCard,
@@ -29,6 +30,7 @@ export const SignupPage = () => {
     const [params] = useSearchParams();
     const invitationToken = params.get('invitation') ?? params.get('invitationToken') ?? params.get('token');
     const signup = useSignup();
+    const invitation = useInvitation(invitationToken);
 
     useEffect(() => {
         signup.reset();
@@ -41,6 +43,20 @@ export const SignupPage = () => {
                 title="Invitation requise"
                 subTitle="La création de compte est uniquement accessible depuis un lien d’invitation."
                 extra={<Button type="primary"><Link to={ROUTES.ABOUT}>En savoir plus</Link></Button>}
+            />
+        </StyledCard>;
+    }
+
+    if (invitation.isPending) {
+        return <StyledCard isMobile={isMobile}><Spin /> Vérification de votre invitation…</StyledCard>;
+    }
+
+    if (invitation.isError) {
+        return <StyledCard isMobile={isMobile}>
+            <Result
+                status="error"
+                title="Invitation invalide ou expirée"
+                subTitle="Veuillez utiliser un lien d’invitation valide."
             />
         </StyledCard>;
     }
@@ -103,6 +119,12 @@ export const SignupPage = () => {
                         <Input autoComplete="family-name"/>
                     </Form.Item>
                 </Flex>
+                <Alert
+                    type="info"
+                    showIcon
+                    title={<>Vous êtes invité à rejoindre <strong>{invitation.data.applicationName}</strong>.</>}
+                    style={{marginBottom: '1rem'}}
+                />
                 <Form.Item
                     label="Adresse mail"
                     name="email"

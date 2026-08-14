@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,7 @@ import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.net.URI;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -32,31 +34,31 @@ public class RegistrationService {
     private final InvitationTokenRepository invitations;
     private final PasswordEncoder passwordEncoder;
     private final RestClient restClient;
-    private final String provisioningSecret;
     private final String authFrontendUrl;
     private final Map<String, IdentityProperties.OAuthClient> clients;
 
     public RegistrationService(IdentityUserRepository users, InvitationTokenRepository invitations,
                                PasswordEncoder passwordEncoder, RestClient.Builder restClient,
-                               @Value("${identity.provisioning-secret}") String provisioningSecret,
                                @Value("${identity.auth-frontend-url:http://localhost:5180}") String authFrontendUrl,
                                IdentityProperties properties) {
         this.users = users;
         this.invitations = invitations;
         this.passwordEncoder = passwordEncoder;
         this.restClient = restClient.build();
-        this.provisioningSecret = provisioningSecret;
         this.authFrontendUrl = authFrontendUrl.replaceAll("/$", "");
         this.clients = properties.getOauthClients().stream().collect(Collectors.toUnmodifiableMap(
                 client -> client.getClientId().trim(), Function.identity()));
     }
 
+    @Transactional
     public SignupResponse signup(SignupRequest request) {
         InvitationToken invitation = invitations.findByToken(request.invitationToken())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid invitation"));
+
         if (invitation.getUsedAt() != null || invitation.getExpiresAt().isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invitation expired or used");
         }
+
         if (users.findByEmailIgnoreCase(request.email()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
         }
@@ -64,15 +66,18 @@ public class RegistrationService {
         IdentityUser user = new IdentityUser(request.email(), passwordEncoder.encode(request.password()),
                 request.firstName(), request.lastName());
         users.save(user);
+        // The invitation is still claimed after login, but the downstream account
+        // must exist as soon as the identity account has been created.
+        provisionUser(user, invitation);
         return new SignupResponse(user.getId(), user.getEmail());
     }
 
     public InvitationResponse createInvitation(String providedSecret, InvitationRequest request) {
-        if (!provisioningSecret.equals(providedSecret)) {
+        IdentityProperties.OAuthClient client = client(request.clientId());
+        if (client.getProvisioningSecret() == null || !client.getProvisioningSecret().equals(providedSecret)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid secret");
         }
 
-        IdentityProperties.OAuthClient client = client(request.clientId());
         if (client.getProvisioningUrl() == null || client.getProvisioningUrl().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Application has no provisioning endpoint");
         }
@@ -110,7 +115,7 @@ public class RegistrationService {
         IdentityProperties.OAuthClient client = client(invitation.getClientId());
         restClient.post()
                 .uri(client.getProvisioningUrl())
-                .header("X-Identity-Provisioning-Secret", provisioningSecret)
+                .header("X-Identity-Provisioning-Secret", client.getProvisioningSecret())
                 .body(request)
                 .retrieve()
                 .toBodilessEntity();
@@ -147,6 +152,21 @@ public class RegistrationService {
     private InvitationResponse invitationResponse(String token, IdentityProperties.OAuthClient client) {
         String invitationUrl = authFrontendUrl + "/signup?invitationToken="
                 + java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
-        return new InvitationResponse(token, client.getClientId(), applicationName(client), invitationUrl);
+        String applicationUrl = applicationUrl(client);
+        return new InvitationResponse(token, client.getClientId(), applicationName(client), invitationUrl, applicationUrl);
+    }
+
+    private static String applicationUrl(IdentityProperties.OAuthClient client) {
+        return client.getRedirectUris().stream()
+                .findFirst()
+                .map(uri -> {
+                    try {
+                        URI redirect = URI.create(uri);
+                        return redirect.getScheme() + "://" + redirect.getRawAuthority() + "/";
+                    } catch (IllegalArgumentException ignored) {
+                        return uri;
+                    }
+                })
+                .orElse(null);
     }
 }

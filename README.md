@@ -45,13 +45,12 @@ IDENTITY_ISSUER=http://localhost:8081       # Docker Compose default
 # identity.oauth-clients[0].client-id=default-web
 # identity.oauth-clients[0].redirect-uris[0]=http://localhost:4200/auth/callback
 # identity.oauth-clients[0].redirect-uris[1]=https://app.example.com/auth/callback
-IDENTITY_ALLOWED_BACKENDS_0=default-api
+IDENTITY_ALLOWED_RESSOURCES_0=default-api
 IDENTITY_SCOPES_0=openid
 IDENTITY_SCOPES_1=profile
 IDENTITY_SCOPES_2=email
 IDENTITY_ACCESS_TOKEN_TTL_SECONDS=600
 IDENTITY_REFRESH_TOKEN_TTL_DAYS=30
-IDENTITY_PROVISIONING_SECRET=change-me     # replace outside local development
 ```
 
 When both applications run directly on the host, run the identity server on a free port such as `8081`, set its `PORT`
@@ -67,6 +66,7 @@ identity:
     - client-id: web-client
       display-name: Web application
       provisioning-url: http://localhost:8080/api/internal/identity-users
+      provisioning-secret: change-me-web
       redirect-uris:
         - http://localhost:4200/auth/callback
     - client-id: admin-web
@@ -80,9 +80,9 @@ When configuring through environment variables, use indexed Spring Boot properti
 `IDENTITY_OAUTH_CLIENTS_1_CLIENT_ID` and
 `IDENTITY_OAUTH_CLIENTS_1_REDIRECT_URIS_0`.
 
-`identity.allowed-backends`, `identity.scopes`, and `identity.cors.allowed-origins` are YAML lists. When using
-environment variables, use indexed properties such as `IDENTITY_ALLOWED_BACKENDS_0`, `IDENTITY_SCOPES_0`, and
-`IDENTITY_CORS_ALLOWED_ORIGINS_0`. The first configured backend is used when the authorization request omits `resource`.
+`identity.allowed-ressources`, `identity.scopes`, and `identity.cors.allowed-origins` are YAML lists. When using
+environment variables, use indexed properties such as `IDENTITY_ALLOWED_RESSOURCES_0`, `IDENTITY_SCOPES_0`, and
+`IDENTITY_CORS_ALLOWED_ORIGINS_0`. The first configured resource is used when the authorization request omits `resource`.
 
 Configure browser origins explicitly as a YAML list:
 
@@ -220,7 +220,7 @@ Configure the downstream API with:
 identity.issuer=http://localhost:8081
 identity.jwk-set-uri=http://localhost:8081/oauth2/jwks
 identity.audience=<api-audience>
-api.provisioning-secret=change-me
+api.provisioning-secret=change-me-web
 ```
 
 The corresponding environment variables are `IDENTITY_ISSUER`, `IDENTITY_JWK_SET_URI`, `IDENTITY_AUDIENCE`, and the
@@ -235,9 +235,9 @@ must be enabled by each resource server if required.
 Configure additional audiences, for example:
 
 ```text
-IDENTITY_ALLOWED_BACKENDS_0=application-api
-IDENTITY_ALLOWED_BACKENDS_1=analytics-api
-IDENTITY_ALLOWED_BACKENDS_2=admin-api
+IDENTITY_ALLOWED_RESSOURCES_0=application-api
+IDENTITY_ALLOWED_RESSOURCES_1=analytics-api
+IDENTITY_ALLOWED_RESSOURCES_2=admin-api
 ```
 
 Clients select an audience with the `resource` parameter on `/oauth2/authorize`. The authorization code and
@@ -309,9 +309,9 @@ Registration is invitation-based. The invitation is tied to one OAuth client/app
 8. The downstream application creates or updates only its own local user record and optionally links it to application
    data.
 
-The identity server uses `IDENTITY_PROVISIONING_SECRET`; the downstream application uses its own provisioning-secret
-setting. These values must be identical. Keep them private and replace the `change-me` defaults outside local
-development.
+Each downstream application has its own `provisioning-secret` under its OAuth client configuration. The same value
+authenticates invitation creation for that client and is sent to the downstream provisioning endpoint. Keep all
+secrets private and replace the `change-me` defaults outside local development.
 
 ## Refresh, revocation, and logout
 

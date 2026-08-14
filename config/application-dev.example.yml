@@ -47,23 +47,28 @@ identity:
   issuer: http://localhost:8081
   oauth-clients:
     - client-id: auth-portal
+      provisioning-url: http://localhost:5180/api/internal/identity-users
+      provisioning-secret: change-me-auth
       redirect-uris:
         - http://localhost:5180/auth/callback
         - http://localhost:5180/auth/logout-callback
 
     - client-id: web-client
+      provisioning-url: http://localhost:4200/api/internal/identity-users
+      provisioning-secret: change-me-web
       redirect-uris:
         - http://localhost:4200/auth/callback
 
     - client-id: kicker-client
       display-name: Kicker
       provisioning-url: http://localhost:8080/api/internal/identity-users
+      provisioning-secret: change-me-kicker
       redirect-uris:
         - http://localhost:5173/auth/callback
         - http://localhost:5173/auth/logout-callback
 
-  allowed-backends:
-    - default-api
+  allowed-ressources:
+    - https://backend.api.default/
   scopes:
     - openid
     - profile
@@ -75,6 +80,5 @@ identity:
       - http://localhost:4200
       - http://localhost:5173
       - http://localhost:5180
-  provisioning-secret: change-me
   password-reset:
     token-ttl-minutes: 30
