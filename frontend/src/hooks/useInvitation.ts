@@ -6,6 +6,7 @@ export type Invitation = {
     clientId: string;
     applicationName: string;
     invitationUrl: string;
+    applicationUrl: string | null;
 };
 
 const fetchInvitation = async (token: string): Promise<Invitation> => {

@@ -48,7 +48,7 @@ export const SignupPage = () => {
     }
 
     if (invitation.isPending) {
-        return <StyledCard isMobile={isMobile}><Spin /> Vérification de votre invitation…</StyledCard>;
+        return <StyledCard isMobile={isMobile}><Spin/> Vérification de votre invitation…</StyledCard>;
     }
 
     if (invitation.isError) {
@@ -70,8 +70,12 @@ export const SignupPage = () => {
             <Result
                 status="success"
                 title="Votre compte est prêt"
-                subTitle="Vous pouvez maintenant vous connecter."
-                extra={<Button type="primary"><Link to={`${ROUTES.LOGIN}?invitation=${encodeURIComponent(invitationToken)}`}>Se connecter</Link></Button>}
+                subTitle="Votre compte est prêt. Accédez maintenant à l’application !"
+                extra={invitation.data.applicationUrl
+                    ? <Button type="primary" href={invitation.data.applicationUrl}>Accéder à l'application</Button>
+                    : <Button type="primary"><Link
+                        to={`${ROUTES.LOGIN}?invitation=${encodeURIComponent(invitationToken)}`}>Se
+                        connecter</Link></Button>}
             />
         </StyledCard>
     );
@@ -173,7 +177,8 @@ export const SignupPage = () => {
                 </Button>
             </Form>
             <Paragraph style={{marginTop: '1rem', marginBottom: 0}}>
-                Déjà inscrit ? <Link to={`${ROUTES.LOGIN}?invitation=${encodeURIComponent(invitationToken)}`}>Se connecter</Link>
+                Déjà inscrit ? <Link to={`${ROUTES.LOGIN}?invitation=${encodeURIComponent(invitationToken)}`}>Se
+                connecter</Link>
             </Paragraph>
         </StyledCard>);
 };
