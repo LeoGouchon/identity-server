@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -113,12 +114,17 @@ public class RegistrationService {
         request.put("lastName", user.getLastName());
         request.put("playerId", invitation.getPlayerId());
         IdentityProperties.OAuthClient client = client(invitation.getClientId());
-        restClient.post()
-                .uri(client.getProvisioningUrl())
-                .header("X-Identity-Provisioning-Secret", client.getProvisioningSecret())
-                .body(request)
-                .retrieve()
-                .toBodilessEntity();
+        try {
+            restClient.post()
+                    .uri(client.getProvisioningUrl())
+                    .header("X-Identity-Provisioning-Secret", client.getProvisioningSecret())
+                    .body(request)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException.Unauthorized exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "Downstream provisioning rejected the configured secret for " + client.getClientId(), exception);
+        }
     }
 
     private InvitationToken validInvitation(String token) {
