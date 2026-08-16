@@ -126,22 +126,88 @@ class OAuth2ServiceTest {
 
     @Test
     void refreshRotatesTokenAndPreservesAudience() {
-        RefreshTokenSession session = new RefreshTokenSession();
-        session.setTokenHash(hash("refresh-token"));
-        session.setUser(user);
-        session.setClientId("web-client");
-        session.setScope("openid");
-        session.setAudience("default-api");
-        session.setExpiresAt(LocalDateTime.now(ZoneOffset.UTC).plusDays(1));
+        RefreshTokenSession session = refreshSession("refresh-token", "web-client", "openid", "default-api",
+                LocalDateTime.now(ZoneOffset.UTC).plusDays(1));
         when(refreshTokens.findByTokenHash(hash("refresh-token"))).thenReturn(Optional.of(session));
 
         Map<String, Object> result = service.token("refresh_token", "web-client", null, null, null, "refresh-token");
 
         assertEquals("access-token", result.get("access_token"));
+        assertEquals("id-token", result.get("id_token"));
+        assertEquals("Bearer", result.get("token_type"));
+        assertEquals("openid", result.get("scope"));
+        assertNotNull(result.get("refresh_token"));
         assertNotNull(session.getUsedAt());
         assertNotNull(session.getRevokedAt());
         verify(tokens).accessToken(user, "default-api", "openid");
         verify(refreshTokens, times(2)).save(any(RefreshTokenSession.class));
+    }
+
+    @Test
+    void refreshRejectsUnknownToken() {
+        when(refreshTokens.findByTokenHash(hash("unknown-token"))).thenReturn(Optional.empty());
+
+        OAuth2Service.OAuthException exception = assertThrows(OAuth2Service.OAuthException.class,
+                () -> service.token("refresh_token", "web-client", null, null, null, "unknown-token"));
+
+        assertEquals("invalid_grant", exception.getMessage());
+        verifyNoInteractions(tokens);
+    }
+
+    @Test
+    void refreshRejectsMissingToken() {
+        OAuth2Service.OAuthException exception = assertThrows(OAuth2Service.OAuthException.class,
+                () -> service.token("refresh_token", "web-client", null, null, null, null));
+
+        assertEquals("invalid_grant", exception.getMessage());
+        verifyNoInteractions(refreshTokens, tokens);
+    }
+
+    @Test
+    void refreshRejectsWrongClientWithoutConsumingToken() {
+        RefreshTokenSession session = refreshSession("refresh-token", "web-client", "openid", "default-api",
+                LocalDateTime.now(ZoneOffset.UTC).plusDays(1));
+        when(refreshTokens.findByTokenHash(hash("refresh-token"))).thenReturn(Optional.of(session));
+
+        OAuth2Service.OAuthException exception = assertThrows(OAuth2Service.OAuthException.class,
+                () -> service.token("refresh_token", "another-client", null, null, null, "refresh-token"));
+
+        assertEquals("invalid_grant", exception.getMessage());
+        assertNull(session.getUsedAt());
+        assertNull(session.getRevokedAt());
+        verify(refreshTokens, never()).save(any(RefreshTokenSession.class));
+        verifyNoInteractions(tokens);
+    }
+
+    @Test
+    void refreshRejectsExpiredTokenWithoutConsumingIt() {
+        RefreshTokenSession session = refreshSession("refresh-token", "web-client", "openid", "default-api",
+                LocalDateTime.now(ZoneOffset.UTC).minusSeconds(1));
+        when(refreshTokens.findByTokenHash(hash("refresh-token"))).thenReturn(Optional.of(session));
+
+        OAuth2Service.OAuthException exception = assertThrows(OAuth2Service.OAuthException.class,
+                () -> service.token("refresh_token", "web-client", null, null, null, "refresh-token"));
+
+        assertEquals("invalid_grant", exception.getMessage());
+        assertNull(session.getUsedAt());
+        assertNull(session.getRevokedAt());
+        verify(refreshTokens, never()).save(any(RefreshTokenSession.class));
+        verifyNoInteractions(tokens);
+    }
+
+    @Test
+    void refreshTokenCannotBeUsedTwice() {
+        RefreshTokenSession session = refreshSession("refresh-token", "web-client", "openid", "default-api",
+                LocalDateTime.now(ZoneOffset.UTC).plusDays(1));
+        when(refreshTokens.findByTokenHash(hash("refresh-token"))).thenReturn(Optional.of(session));
+
+        service.token("refresh_token", "web-client", null, null, null, "refresh-token");
+
+        OAuth2Service.OAuthException exception = assertThrows(OAuth2Service.OAuthException.class,
+                () -> service.token("refresh_token", "web-client", null, null, null, "refresh-token"));
+
+        assertEquals("invalid_grant", exception.getMessage());
+        verify(tokens, times(1)).accessToken(user, "default-api", "openid");
     }
 
     @Test
@@ -190,5 +256,17 @@ class OAuth2ServiceTest {
         } catch (Exception e) {
             throw new AssertionError(e);
         }
+    }
+
+    private RefreshTokenSession refreshSession(String token, String clientId, String scope, String audience,
+                                               LocalDateTime expiresAt) {
+        RefreshTokenSession session = new RefreshTokenSession();
+        session.setTokenHash(hash(token));
+        session.setUser(user);
+        session.setClientId(clientId);
+        session.setScope(scope);
+        session.setAudience(audience);
+        session.setExpiresAt(expiresAt);
+        return session;
     }
 }
