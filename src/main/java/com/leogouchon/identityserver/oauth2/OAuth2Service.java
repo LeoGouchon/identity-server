@@ -29,7 +29,7 @@ public class OAuth2Service {
     private final Map<String, AuthorizationCode> codes = new ConcurrentHashMap<>();
     private final String issuer;
     private final long refreshTtlDays;
-    private final Set<String> allowedBackends;
+    private final Set<String> allowedRessources;
     private final List<String> scopes;
     private final String defaultBackend;
     private final Map<String, Set<String>> clients;
@@ -43,14 +43,14 @@ public class OAuth2Service {
         this.refreshTokens = refreshTokens;
         this.issuer = issuer;
         this.refreshTtlDays = refreshTtlDays;
-        this.allowedBackends = identityProperties.getAllowedBackends().stream()
+        this.allowedRessources = identityProperties.getAllowedRessources().stream()
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
-        if (this.allowedBackends.isEmpty()) {
-            throw new IllegalArgumentException("At least one identity backend must be configured");
+        if (this.allowedRessources.isEmpty()) {
+            throw new IllegalArgumentException("At least one identity resource must be configured");
         }
-        this.defaultBackend = this.allowedBackends.iterator().next();
+        this.defaultBackend = this.allowedRessources.iterator().next();
         this.scopes = identityProperties.getScopes().stream()
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
@@ -98,7 +98,7 @@ public class OAuth2Service {
         }
 
         String backend = resource == null || resource.isBlank() ? defaultBackend : resource;
-        if (!allowedBackends.contains(backend)) {
+        if (!allowedRessources.contains(backend)) {
             throw new OAuthException("invalid_target");
         }
 

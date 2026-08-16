@@ -45,20 +45,18 @@ IDENTITY_ISSUER=http://localhost:8081       # Docker Compose default
 # identity.oauth-clients[0].client-id=default-web
 # identity.oauth-clients[0].redirect-uris[0]=http://localhost:4200/auth/callback
 # identity.oauth-clients[0].redirect-uris[1]=https://app.example.com/auth/callback
-IDENTITY_ALLOWED_BACKENDS_0=default-api
+IDENTITY_ALLOWED_RESSOURCES_0=default-api
 IDENTITY_SCOPES_0=openid
 IDENTITY_SCOPES_1=profile
 IDENTITY_SCOPES_2=email
 IDENTITY_ACCESS_TOKEN_TTL_SECONDS=600
 IDENTITY_REFRESH_TOKEN_TTL_DAYS=30
-IDENTITY_PROVISIONING_URL=http://localhost:8080/api/internal/identity-users
-IDENTITY_PROVISIONING_SECRET=change-me     # replace outside local development
 ```
 
 When both applications run directly on the host, run the identity server on a free port such as `8081`, set its `PORT`
 and `IDENTITY_ISSUER` consistently, and leave the downstream API on its default `8080` port. When the identity server
-runs in Docker, configure `IDENTITY_PROVISIONING_URL` so the container can reach the downstream API; `localhost` inside
-the container refers to the identity-server container.
+runs in Docker, configure each OAuth client's `provisioning-url` so its container can reach the corresponding downstream
+API.
 
 OAuth clients are configured as a YAML list in `src/main/resources/application.yml`:
 
@@ -66,6 +64,9 @@ OAuth clients are configured as a YAML list in `src/main/resources/application.y
 identity:
   oauth-clients:
     - client-id: web-client
+      display-name: Web application
+      provisioning-url: http://localhost:8080/api/internal/identity-users
+      provisioning-secret: change-me-web
       redirect-uris:
         - http://localhost:4200/auth/callback
     - client-id: admin-web
@@ -79,9 +80,9 @@ When configuring through environment variables, use indexed Spring Boot properti
 `IDENTITY_OAUTH_CLIENTS_1_CLIENT_ID` and
 `IDENTITY_OAUTH_CLIENTS_1_REDIRECT_URIS_0`.
 
-`identity.allowed-backends`, `identity.scopes`, and `identity.cors.allowed-origins` are YAML lists. When using
-environment variables, use indexed properties such as `IDENTITY_ALLOWED_BACKENDS_0`, `IDENTITY_SCOPES_0`, and
-`IDENTITY_CORS_ALLOWED_ORIGINS_0`. The first configured backend is used when the authorization request omits `resource`.
+`identity.allowed-ressources`, `identity.scopes`, and `identity.cors.allowed-origins` are YAML lists. When using
+environment variables, use indexed properties such as `IDENTITY_ALLOWED_RESSOURCES_0`, `IDENTITY_SCOPES_0`, and
+`IDENTITY_CORS_ALLOWED_ORIGINS_0`. The first configured resource is used when the authorization request omits `resource`.
 
 Configure browser origins explicitly as a YAML list:
 
@@ -219,7 +220,7 @@ Configure the downstream API with:
 identity.issuer=http://localhost:8081
 identity.jwk-set-uri=http://localhost:8081/oauth2/jwks
 identity.audience=<api-audience>
-api.provisioning-secret=change-me
+api.provisioning-secret=change-me-web
 ```
 
 The corresponding environment variables are `IDENTITY_ISSUER`, `IDENTITY_JWK_SET_URI`, `IDENTITY_AUDIENCE`, and the
@@ -234,9 +235,9 @@ must be enabled by each resource server if required.
 Configure additional audiences, for example:
 
 ```text
-IDENTITY_ALLOWED_BACKENDS_0=application-api
-IDENTITY_ALLOWED_BACKENDS_1=analytics-api
-IDENTITY_ALLOWED_BACKENDS_2=admin-api
+IDENTITY_ALLOWED_RESSOURCES_0=application-api
+IDENTITY_ALLOWED_RESSOURCES_1=analytics-api
+IDENTITY_ALLOWED_RESSOURCES_2=admin-api
 ```
 
 Clients select an audience with the `resource` parameter on `/oauth2/authorize`. The authorization code and
@@ -268,7 +269,7 @@ After a successful password change, a separate confirmation email is sent to the
 
 ## Registration and identity provisioning
 
-Registration is invitation-based:
+Registration is invitation-based. The invitation is tied to one OAuth client/application:
 
 1. An authorized internal caller creates an invitation:
 
@@ -277,7 +278,7 @@ Registration is invitation-based:
    X-Identity-Provisioning-Secret: <shared-secret>
    Content-Type: application/json
 
-   {"playerId": "<optional application user or player UUID>"}
+   {"clientId": "web-client", "playerId": "<optional application user or player UUID>"}
    ```
 
 2. The identity server creates a seven-day invitation token.
@@ -290,9 +291,10 @@ Registration is invitation-based:
    {"email": "user@example.com", "password": "<password>", "invitationToken": "<token>"}
    ```
 
-4. The identity server validates and consumes the invitation, stores a BCrypt password hash, and creates
-   `identity_user`.
-5. It calls the configured `IDENTITY_PROVISIONING_URL`, normally the downstream application's endpoint:
+4. The identity server validates the invitation, stores a BCrypt password hash, and creates `identity_user`.
+5. The user then logs in through the identity server. The invitation remains pending until this authenticated step.
+6. The identity server calls the `provisioning-url` configured on the invitation's OAuth client, normally the downstream
+   application's endpoint:
 
    ```http
    POST /api/internal/identity-users
@@ -302,11 +304,14 @@ Registration is invitation-based:
    {"identityUserId": "<identity UUID>", "email": "user@example.com", "playerId": "<optional UUID>"}
    ```
 
-6. The downstream application creates or updates its local user record and optionally links it to application data.
+7. For an existing identity account, the invitation link keeps the invitation token through login and calls
+   `POST /api/v1/invitations/{token}/claim`; the same application provisioning endpoint then links the local user.
+8. The downstream application creates or updates only its own local user record and optionally links it to application
+   data.
 
-The identity server uses `IDENTITY_PROVISIONING_SECRET`; the downstream application uses its own provisioning-secret
-setting. These values must be identical. Keep them private and replace the `change-me` defaults outside local
-development.
+Each downstream application has its own `provisioning-secret` under its OAuth client configuration. The same value
+authenticates invitation creation for that client and is sent to the downstream provisioning endpoint. Keep all
+secrets private and replace the `change-me` defaults outside local development.
 
 ## Refresh, revocation, and logout
 

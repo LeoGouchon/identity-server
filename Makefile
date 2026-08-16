@@ -21,6 +21,7 @@ start: up
 
 build:
 	docker compose build
+	$(MAKE) dev
 
 stop:
 	docker compose down

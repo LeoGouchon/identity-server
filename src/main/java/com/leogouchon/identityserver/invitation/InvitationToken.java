@@ -16,6 +16,8 @@ public class InvitationToken {
     private UUID id;
     @Column(nullable = false, unique = true, length = 128)
     private String token;
+    @Column(name = "client_id", nullable = false, length = 100)
+    private String clientId;
     @Column(name = "player_id")
     private UUID playerId;
     @Column(name = "expires_at", nullable = false)

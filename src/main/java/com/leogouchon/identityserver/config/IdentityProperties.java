@@ -12,7 +12,7 @@ import java.util.List;
 public class IdentityProperties {
     private String authFrontendUrl = "http://localhost:5180";
     private List<OAuthClient> oauthClients = List.of();
-    private List<String> allowedBackends = List.of();
+    private List<String> allowedRessources = List.of();
     private List<String> scopes = List.of();
     private Cors cors = new Cors();
     private PasswordReset passwordReset = new PasswordReset();
@@ -21,6 +21,9 @@ public class IdentityProperties {
     @Getter
     public static class OAuthClient {
         private String clientId;
+        private String displayName;
+        private String provisioningUrl;
+        private String provisioningSecret;
         private List<String> redirectUris = List.of();
     }
 

@@ -17,6 +17,7 @@ export const LoginPage = () => {
 
     const [params] = useSearchParams();
     const hasError = params.get('error') === 'authentication_failed';
+    const invitationToken = params.get('invitation') ?? params.get('invitationToken') ?? params.get('token');
     const [showError, setShowError] = useState(hasError);
     const [email, setEmail] = useState('');
     const [form] = Form.useForm();
@@ -49,6 +50,7 @@ export const LoginPage = () => {
                 onSubmit={() => sessionStorage.setItem(LOGIN_EMAIL_STORAGE_KEY, email)}
                 style={{marginBottom: '1rem'}}
             >
+                {invitationToken && <input type="hidden" name="invitation" value={invitationToken}/>} 
                 <Form
                     form={form}
                     component={false}

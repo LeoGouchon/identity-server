@@ -3,6 +3,7 @@ import {useEffect} from 'react';
 import {Link, useSearchParams} from 'react-router-dom';
 
 import {useSignup} from '../../hooks/useSignup';
+import {useInvitation} from '../../hooks/useInvitation';
 import {
     StyledIconImage,
     StyledCard,
@@ -27,8 +28,9 @@ export const SignupPage = () => {
     const isMobile = !screens.md;
 
     const [params] = useSearchParams();
-    const invitationToken = params.get('invitation') ?? params.get('token');
+    const invitationToken = params.get('invitation') ?? params.get('invitationToken') ?? params.get('token');
     const signup = useSignup();
+    const invitation = useInvitation(invitationToken);
 
     useEffect(() => {
         signup.reset();
@@ -45,6 +47,20 @@ export const SignupPage = () => {
         </StyledCard>;
     }
 
+    if (invitation.isPending) {
+        return <StyledCard isMobile={isMobile}><Spin/> Vérification de votre invitation…</StyledCard>;
+    }
+
+    if (invitation.isError) {
+        return <StyledCard isMobile={isMobile}>
+            <Result
+                status="error"
+                title="Invitation invalide ou expirée"
+                subTitle="Veuillez utiliser un lien d’invitation valide."
+            />
+        </StyledCard>;
+    }
+
     const submit = ({firstName, lastName, email, password}: SignupValues) => {
         signup.mutate({firstName, lastName, email, password, invitationToken});
     };
@@ -54,8 +70,12 @@ export const SignupPage = () => {
             <Result
                 status="success"
                 title="Votre compte est prêt"
-                subTitle="Vous pouvez maintenant vous connecter."
-                extra={<Button type="primary"><Link to={ROUTES.LOGIN}>Se connecter</Link></Button>}
+                subTitle="Votre compte est prêt. Accédez maintenant à l’application !"
+                extra={invitation.data.applicationUrl
+                    ? <Button type="primary" href={invitation.data.applicationUrl}>Accéder à l'application</Button>
+                    : <Button type="primary"><Link
+                        to={`${ROUTES.LOGIN}?invitation=${encodeURIComponent(invitationToken)}`}>Se
+                        connecter</Link></Button>}
             />
         </StyledCard>
     );
@@ -103,6 +123,12 @@ export const SignupPage = () => {
                         <Input autoComplete="family-name"/>
                     </Form.Item>
                 </Flex>
+                <Alert
+                    type="info"
+                    showIcon
+                    title={<>Vous êtes invité à rejoindre <strong>{invitation.data.applicationName}</strong>.</>}
+                    style={{marginBottom: '1rem'}}
+                />
                 <Form.Item
                     label="Adresse mail"
                     name="email"
@@ -151,7 +177,8 @@ export const SignupPage = () => {
                 </Button>
             </Form>
             <Paragraph style={{marginTop: '1rem', marginBottom: 0}}>
-                Déjà inscrit ? <Link to={ROUTES.LOGIN}>Se connecter</Link>
+                Déjà inscrit ? <Link to={`${ROUTES.LOGIN}?invitation=${encodeURIComponent(invitationToken)}`}>Se
+                connecter</Link>
             </Paragraph>
         </StyledCard>);
 };

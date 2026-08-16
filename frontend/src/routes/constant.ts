@@ -4,6 +4,7 @@ export const ROUTES = {
     LOGIN: '/login',
     FORGOT_PASSWORD: '/forgot-password',
     SIGNUP: '/signup',
+    INVITATION_COMPLETE: '/invitation/complete',
     NOT_FOUND: '*',
 } as const;
 
