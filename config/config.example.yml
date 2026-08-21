@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: identity-server
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    from: ${SMTP_FROM:Identity Server <no-reply@example.com>}
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS_ENABLE:true}
+      mail.smtp.ssl.enable: ${SMTP_SSL_ENABLE:false}
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:db}:5432/${DB_NAME:identity}
+    username: ${DB_USER:identity}
+    password: ${DB_PASSWORD:identity-local}
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      keepalive-time: 0
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration,classpath:db/dev-data
+    schemas: public
+
+server:
+  port: ${PORT:8080}
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: ${IDENTITY_COOKIE_SECURE:false}
+        same-site: ${IDENTITY_COOKIE_SAME_SITE:LAX}
+
+cookie:
+  secure: ${IDENTITY_COOKIE_SECURE:false}
+
+identity:
+  auth-frontend-url: ${IDENTITY_AUTH_FRONTEND_URL:http://localhost:5180}
+  issuer: ${IDENTITY_ISSUER:http://localhost:8081}
+  oauth-clients:
+    - client-id: ${IDENTITY_CLIENT_ID:auth-portal}
+      provisioning-url: ${IDENTITY_PROVISIONING_URL:http://localhost:5180/api/internal/identity-users}
+      provisioning-secret: ${IDENTITY_PROVISIONING_SECRET:change-me}
+      redirect-uris:
+        - ${IDENTITY_REDIRECT_URI:http://localhost:5180/auth/callback}
+  allowed-ressources:
+    - ${IDENTITY_ALLOWED_RESOURCE:default-api}
+  scopes:
+    - openid
+    - profile
+    - email
+  access-token-ttl-seconds: ${IDENTITY_ACCESS_TOKEN_TTL_SECONDS:600}
+  refresh-token-ttl-days: ${IDENTITY_REFRESH_TOKEN_TTL_DAYS:30}
+  cors:
+    allowed-origins:
+      - ${IDENTITY_CORS_ALLOWED_ORIGIN:http://localhost:5180}
+  password-reset:
+    token-ttl-minutes: ${IDENTITY_PASSWORD_RESET_TTL_MINUTES:30}

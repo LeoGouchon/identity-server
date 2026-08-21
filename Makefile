@@ -1,5 +1,5 @@
-CONFIG_FILE := config/application-dev.yml
-CONFIG_EXAMPLE := config/application-dev.example.yml
+CONFIG_FILE := config/config.yml
+CONFIG_EXAMPLE := config/config.example.yml
 
 .PHONY: config dev frontend frontend-install up start stop restart build rebuild test clean logs ps check
 

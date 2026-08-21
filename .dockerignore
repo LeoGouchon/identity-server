@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.mvn
+frontend
+node_modules
+target
+config/*.yml
+!.env.example
+.env
+*.log
