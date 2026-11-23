@@ -1,7 +1,18 @@
 CONFIG_FILE := config/config.yml
 CONFIG_EXAMPLE := config/config.example.yml
 
-.PHONY: config dev frontend frontend-install up start stop restart build rebuild test clean logs ps check
+# One Compose project per worktree: the main checkout keeps "identity-server", worktree <name> uses "identity-server-<name>".
+WORKTREE := $(notdir $(CURDIR))
+COMPOSE_PROJECT_NAME ?= $(if $(filter identity-server,$(WORKTREE)),identity-server,identity-server-$(WORKTREE))
+export COMPOSE_PROJECT_NAME
+
+.PHONY: install config dev frontend frontend-install up start stop restart build rebuild test clean logs ps check
+
+# Worktree init (orca): local config files, frontend deps and backend image, without starting anything.
+install:
+	powershell -NoProfile -ExecutionPolicy Bypass -File scripts/worktree-install.ps1
+	npm.cmd --prefix frontend ci
+	docker compose build
 
 config:
 	powershell -NoProfile -ExecutionPolicy Bypass -Command "if (-not (Test-Path '$(CONFIG_FILE)')) { Copy-Item '$(CONFIG_EXAMPLE)' '$(CONFIG_FILE)'; Write-Host 'Created $(CONFIG_FILE). Review it before starting.' } else { Write-Host 'Using existing $(CONFIG_FILE).' }"
