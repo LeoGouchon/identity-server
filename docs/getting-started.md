@@ -12,7 +12,8 @@ Installer le projet, le configurer et le lancer en local : le serveur et sa base
 - `.env` : `DB_NAME`, `DB_USER`, `DB_PASSWORD`, lus par Docker Compose pour créer la base **et** passés au conteneur
   `backend` (`env_file`), où la configuration Spring les reprend. Les deux restent donc alignés.
 - `frontend/.env.example` : `VITE_IDENTITY_URL` (URL du serveur vue par le navigateur), à copier en `frontend/.env`.
-- `Makefile` et `scripts/coverage-summary.ps1` : cibles `up`, `frontend`, `test`, `clean`…
+- `Makefile`, `scripts/worktree-install.ps1` et `scripts/coverage-summary.ps1` : cibles `install`, `dev`, `test`,
+  `clean`…
 
 ## Prérequis
 
@@ -20,19 +21,24 @@ Installer le projet, le configurer et le lancer en local : le serveur et sa base
 - **Java 21** pour lancer les tests sans Docker (`./mvnw -B test`). Maven n'est pas requis : le wrapper `mvnw` le
   télécharge.
 - **Node.js** pour le portail (`frontend/`, Vite).
-- **PowerShell** (Windows) : les cibles `make config` et `make test` l'appellent, `make frontend` appelle `npm.cmd`.
+- **PowerShell** (Windows) : les cibles `install`, `config`, `clean` et `test` l'appellent, `install` et `frontend`
+  appellent `npm.cmd`.
 
 ## Installation
 
 ```bash
-make up                 # crée config/config.yml si absent, puis construit et démarre db + backend
-make frontend-install   # npm install du portail (une fois)
-make frontend           # portail sur http://localhost:5180
+make install   # config/config.yml et frontend/.env, npm ci du portail, image Docker (sans rien démarrer)
+make dev       # démarre db + backend dans Docker, puis le portail sur http://localhost:5180 (premier plan)
 ```
 
-`make dev` enchaîne `up` et `frontend`. Relire `config/config.yml` avant le premier démarrage (clients OAuth, CORS,
-SMTP). Au démarrage, Flyway applique les migrations de `db/migration` puis le seed de `db/dev-data` ; une paire de
-clés RSA est générée et gardée en base si elle n'existe pas.
+`make install` copie les fichiers locaux ignorés par Git (`config/config.yml`, `frontend/.env`) depuis le checkout
+principal, ou les crée depuis leur exemple. Relire `config/config.yml` avant le premier démarrage (clients OAuth,
+CORS, SMTP). Au démarrage, Flyway applique les migrations de `db/migration` puis le seed de `db/dev-data` ; une paire
+de clés RSA est générée et gardée en base si elle n'existe pas.
+
+**Worktrees Orca** : `make install` sert de script de création et `make clean` de script d'archivage. Chaque worktree
+a son propre projet Docker Compose, `identity-server-<worktree>` ; le checkout principal garde `identity-server`. Les
+ports 5434, 8081 et 5180 restent partagés : un seul checkout peut faire tourner `make dev` à la fois.
 
 Vérifier : `curl http://localhost:8081/.well-known/openid-configuration`.
 
@@ -40,16 +46,16 @@ Vérifier : `curl http://localhost:8081/.well-known/openid-configuration`.
 
 | Commande                | Effet                                                                          |
 | ----------------------- | ------------------------------------------------------------------------------ |
+| `make install`          | fichiers locaux, `npm ci` du portail, `docker compose build`                    |
 | `make config`           | copie `config/config.example.yml` en `config/config.yml` s'il n'existe pas      |
 | `make up` / `make start`| `config`, puis `docker compose up -d --build`                                  |
 | `make dev`              | `up` puis `frontend`                                                           |
-| `make frontend`         | serveur Vite du portail (port 5180)                                            |
-| `make frontend-install` | `npm install` dans `frontend/`                                                 |
+| `make frontend`         | serveur Vite du portail, port 5180 strict (échoue si le port est pris)         |
 | `make stop`             | `docker compose down` (garde les données)                                       |
 | `make restart`          | `stop` puis `up`                                                               |
 | `make build`            | reconstruit les images, puis `dev`                                             |
 | `make rebuild`          | **supprime le volume de la base**, puis `up`                                    |
-| `make clean`            | **supprime conteneurs et volume de la base**                                    |
+| `make clean`            | **supprime conteneurs, volume de la base**, image locale, `frontend/node_modules` et `dist` |
 | `make logs` / `make ps` | logs du serveur / état des conteneurs                                          |
 | `make check`            | valide `docker-compose.yml`                                                    |
 | `make test`             | tests dans le conteneur Maven, puis résumé de couverture JaCoCo                |
@@ -63,8 +69,8 @@ Vérifier : `curl http://localhost:8081/.well-known/openid-configuration`.
 
 - comptes `admin@gmail.com` / `admin` et `user@gmail.com` / `user` (partagés avec le seed de hubscore) ;
 - invitation `dev-invitation-token` pour le client `kicker-client`, valable 30 jours après le chargement du seed. Elle
-  n'est utilisable que si `config/config.yml` déclare ce client (l'exemple ne déclare que `auth-portal`).
-  Elle ne sert que si `config/config.yml` déclare ce client, avec son `provisioning-url`.
+  ne sert que si `config/config.yml` déclare ce client, avec son `provisioning-url` (l'exemple ne déclare que
+  `auth-portal`).
 
 Ils ne sont chargés que si `spring.flyway.locations` contient `classpath:db/dev-data` (c'est le cas de l'exemple :
 voir [tech-debt.md](tech-debt.md) avant de copier l'exemple en production).

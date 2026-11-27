@@ -9,9 +9,8 @@ l'inscription sur invitation et la réinitialisation du mot de passe. Ses client
 ## Démarrage rapide
 
 ```bash
-make up                # crée config/config.yml si absent, puis PostgreSQL + serveur dans Docker
-make frontend-install  # dépendances du portail (une fois)
-make frontend          # portail sur http://localhost:5180
+make install           # une fois : config/config.yml, frontend/.env, dépendances du portail, image Docker
+make dev               # PostgreSQL + serveur dans Docker, puis le portail sur http://localhost:5180
 ./mvnw -B test         # tests (mocks, sans Docker)
 ```
 
@@ -23,10 +22,14 @@ make frontend          # portail sur http://localhost:5180
 
 | Commande     | Effet                                                         |
 | ------------ | ------------------------------------------------------------- |
+| `make up`    | serveur et base seulement, sans le portail                    |
 | `make logs`  | logs du serveur                                               |
 | `make stop`  | arrête les conteneurs (garde les données)                     |
 | `make test`  | tests dans Docker et résumé de couverture JaCoCo              |
-| `make clean` | supprime les conteneurs **et** la base locale                 |
+| `make clean` | supprime conteneurs, **base locale**, image et `node_modules` |
+
+Dans un worktree Orca, `make install` et `make clean` servent de scripts de création et d'archivage ; chaque worktree
+a son propre projet Docker Compose (voir [getting-started](docs/getting-started.md)).
 
 Comptes de dev (local uniquement) : `admin@gmail.com` / `admin` et `user@gmail.com` / `user`.
 

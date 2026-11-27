@@ -52,7 +52,8 @@ Flyway marque la migration en échec dans `flyway_schema_history`. En local, le 
 (tant qu'il n'est pas mergé) et de repartir d'une base vide :
 
 - `make rebuild` : supprime le volume PostgreSQL puis relance ; **toutes les données locales sont perdues** ;
-- `make clean` : supprime conteneurs et volume sans relancer (même perte).
+- `make clean` : supprime conteneurs, volume, image et dépendances du portail sans relancer (même perte, puis
+  `make install`).
 
 La clé de signature locale est régénérée au démarrage suivant : les jetons déjà émis par ce serveur local ne sont
 plus valides, il faut se reconnecter dans les applications de dev.

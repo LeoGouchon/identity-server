@@ -24,8 +24,10 @@ La documentation du projet est dans `docs/`. Son sommaire est importé ci-dessou
 
 ```bash
 ./mvnw -B test                           # toute la suite (mocks, sans Docker) : à lancer avant toute PR
-make up                                  # crée config/config.yml si absent, démarre PostgreSQL + serveur sur 8081
-make frontend                            # portail Vite sur http://localhost:5180
+make install                             # worktree Orca : fichiers locaux, npm ci du portail, image Docker
+make dev                                 # PostgreSQL + serveur sur 8081, puis portail sur 5180 (premier plan)
+make up                                  # serveur et base seulement (arrière-plan)
+make frontend                            # portail Vite seul, port 5180 strict
 make logs                                # logs du serveur
 make test                                # tests dans Docker + résumé de couverture JaCoCo
 npm --prefix frontend run typecheck      # vérification TypeScript du portail
